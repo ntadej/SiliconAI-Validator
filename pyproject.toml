@@ -58,7 +58,7 @@ ignore_errors = true
 
 [tool.ruff]
 src = ["src"]
-target-version = "py311"
+target-version = "py39"
 line-length = 88
 
 [tool.ruff.lint]
@@ -105,6 +105,7 @@ select = [
     "RUF",  # ruff
 ]
 ignore = [
+    "UP007",  # non-pep604-annotation (needs python 3.10)
     "D203",   # one-blank-line-before-class (conflicting with no-blank-line-before-class)
     "D213",   # multi-line-summary-second-line (conflicting with multi-line-summary-first-line)
     "FBT001", # boolean-positional-arg-in-function-definition (not wanted)
@@ -113,6 +114,7 @@ ignore = [
     "ANN101", # missing-type-self (deprecated)
     "ANN102", # missing-type-class (deprecated)
 ]
+pylint = { max-args = 12 }
 
 [tool.mypy]
 # plugins = "numpy.typing.mypy_plugin"
@@ -124,7 +126,7 @@ show_error_context = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = ["awkward.*", "IPython.*", "mplhep.*", "uproot.*"]
+module = ["acts.*", "awkward.*", "IPython.*", "mplhep.*", "uproot.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -13,6 +13,8 @@ from siliconai_acts.cli.config import (
     config_missing,
 )
 from siliconai_acts.cli.logging import setup_logger
+from siliconai_acts.scheduling.generation import run_generation
+from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
 
 application = typer.Typer()
 state = TyperState()
@@ -87,3 +89,16 @@ def generate() -> None:
     logger = setup_logger(global_config, "generate")
 
     logger.info("Hello World!")
+
+    run_generation(global_config.output_path, 1000)
+
+
+@application.command()
+def simulate() -> None:
+    """Generate particles."""
+    global_config = GlobalConfiguration.load(state)
+    logger = setup_logger(global_config, "simulate")
+
+    logger.info("Hello World!")
+
+    run_simulation_multiprocess(100, 16, global_config.output_path)
