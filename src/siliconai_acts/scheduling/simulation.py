@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from typing import TYPE_CHECKING, Optional
 
 import acts
+from acts.examples.geant4 import RegionCreator
 from acts.examples.simulation import (
     ParticleSelectorConfig,
     addFatras,
@@ -64,6 +65,15 @@ def schedule_simulation(
             killAfterTime=25 * u.ns,
             outputDirRoot=output_path,
             logLevel=log_level,
+            regionList=[
+                RegionCreator(
+                    name="TrackingRegion",
+                    volumes=["Pixels", "ShortStrips", "LongStrips"],
+                    electronCut=0.05 * 100,
+                    positronCut=0.05 * 100,
+                    gammaCut=0.05 * 100,
+                ),
+            ],
         )
 
 
@@ -98,7 +108,7 @@ def run_simulation(
     sequencer.addReader(
         acts.examples.RootParticleReader(
             level=acts.logging.WARNING,
-            particleCollection="particles_input",
+            outputParticles="particles_input",
             filePath=input_path / "particles.root",
         ),
     )
@@ -111,16 +121,9 @@ def run_simulation(
         odd_tracking_geometry,
         odd_field,
         preselect_particles=ParticleSelectorConfig(
-            # these cuts are necessary because of pythia
-            rho=(0.0, 24 * u.mm),
+            # start before beampipe and reasonably close to the collision point
+            rho=(0.0, 23.6 * u.mm),
             absZ=(0.0, 1.0 * u.m),
-        ),
-        postselect_particles=ParticleSelectorConfig(
-            # these cuts should not be necessary for sim
-            eta=(-3.0, 3.0),
-            # using something close to 1 to include for sure
-            pt=(0.999 * u.GeV, None),
-            removeNeutral=True,
         ),
         output_path=output_path,
     )
@@ -143,6 +146,10 @@ def run_simulation_range(
 
 def run_simulation_multiprocess(events: int, processes: int, output_path: Path) -> None:
     """Run event simulation in parallel."""
+    if processes <= 1:
+        run_simulation(output_path, output_path, events)
+        return
+
     chunksize = events // (processes - 1)
     ids = range(processes)
     begins = range(0, events, chunksize)

@@ -5,6 +5,7 @@ repos:
       - id: mypy
         args: []
         additional_dependencies:
+          - pandas
           - rich
           - typer
           - tomli_w

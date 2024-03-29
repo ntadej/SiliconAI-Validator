@@ -16,18 +16,26 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
 ]
-dependencies = ["tomli-w", "tomli", "typer[all] == 0.9.*"]
+dependencies = [
+    "matplotlib == 3.8.*",
+    "mplhep == 0.3.*",
+    "pandas == 2.2.*",
+    "tomli-w",
+    "tomli",
+    "typer[all] == 0.9.*",
+    "uproot == 5.3.*",
+]
 
 [project.scripts]
 siliconai_acts = "siliconai_acts.cli:application"
 
-[tool.pdm]
-distribution = false
-
 [tool.pdm.dev-dependencies]
 dev = [
     "coverage[toml]",
+    "ipykernel",
+    "ipympl",
     "mypy == 1.9.*",
+    "pandas-stubs == 2.2.*",
     "pre-commit-hooks == 4.5.*",
     "pre-commit",
     "pytest >= 7.0",

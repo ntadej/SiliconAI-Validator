@@ -13,8 +13,7 @@ from siliconai_acts.cli.config import (
     config_missing,
 )
 from siliconai_acts.cli.logging import setup_logger
-from siliconai_acts.scheduling.generation import run_generation
-from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
+from siliconai_acts.plotting.common import setup_style
 
 application = typer.Typer()
 state = TyperState()
@@ -90,7 +89,9 @@ def generate() -> None:
 
     logger.info("Hello World!")
 
-    run_generation(global_config.output_path, 1000)
+    from siliconai_acts.scheduling.generation import run_generation
+
+    run_generation(global_config.output_path, 1000000)
 
 
 @application.command()
@@ -101,4 +102,21 @@ def simulate() -> None:
 
     logger.info("Hello World!")
 
-    run_simulation_multiprocess(100, 16, global_config.output_path)
+    from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
+
+    run_simulation_multiprocess(1000, 16, global_config.output_path)
+
+
+@application.command()
+def diagnostics() -> None:
+    """Run diagnostics and make plots."""
+    global_config = GlobalConfiguration.load(state)
+    logger = setup_logger(global_config, "diagnostics")
+
+    logger.info("Hello World!")
+
+    setup_style()
+
+    from siliconai_acts.plotting.diagnostics import plot_particles
+
+    plot_particles(global_config)

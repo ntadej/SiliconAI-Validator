@@ -48,7 +48,7 @@ def schedule_event_generation(
 
         if isinstance(pt_label, tuple):
             momentum_config = MomentumConfig(pt_label[0], pt_label[1], transverse=True)
-            eta_config = EtaConfig(-3.0, 3.0, uniform=False)
+            eta_config = EtaConfig(0.2, 0.25, uniform=False)
         else:
             momentum_config = MomentumConfig(pt_label, pt_label, transverse=True)  # type: ignore
             eta_config = EtaConfig(-3.0, 3.0, uniform=True)
