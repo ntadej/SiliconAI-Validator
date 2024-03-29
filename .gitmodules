@@ -1,0 +1,4 @@
+[submodule "dependencies/ACTS"]
+	path = dependencies/ACTS
+	# url = https://github.com/acts-project/acts.git
+	url = https://github.com/ntadej/acts.git
