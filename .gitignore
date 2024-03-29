@@ -166,3 +166,7 @@ config.toml
 /data
 /run
 /notebooks
+
+# dependencies
+/dependencies/build
+/dependencies/install
