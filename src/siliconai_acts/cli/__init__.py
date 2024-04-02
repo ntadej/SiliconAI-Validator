@@ -8,11 +8,13 @@ import typer
 
 from siliconai_acts import __version__
 from siliconai_acts.cli.config import (
+    Configuration,
     GlobalConfiguration,
     TyperState,
     config_missing,
 )
 from siliconai_acts.cli.logging import setup_logger
+from siliconai_acts.common.enums import ProductionStep
 from siliconai_acts.plotting.common import setup_style
 
 application = typer.Typer()
@@ -82,41 +84,114 @@ def config(
 
 
 @application.command()
-def generate() -> None:
+def generate(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+    diagnostics: Annotated[
+        bool,
+        typer.Option(
+            "-d",
+            "--diagnostics",
+            help="Prepare diagnostics plots.",
+        ),
+    ] = False,
+) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "generate")
-
-    logger.info("Hello World!")
 
     from siliconai_acts.scheduling.generation import run_generation
 
-    run_generation(global_config.output_path, 1000000)
+    run_generation(
+        logger,
+        config.seed,
+        config.process,
+        config.output_path,
+        config.events,
+    )
+
+    if diagnostics:
+        setup_style()
+
+        from siliconai_acts.plotting.diagnostics import plot_particles
+
+        plot_particles(config, ProductionStep.Generation)
 
 
 @application.command()
-def simulate() -> None:
+def simulate(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+    diagnostics: Annotated[
+        bool,
+        typer.Option(
+            "-d",
+            "--diagnostics",
+            help="Prepare diagnostics plots.",
+        ),
+    ] = False,
+) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "simulate")
-
-    logger.info("Hello World!")
 
     from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
 
-    run_simulation_multiprocess(1000, 16, global_config.output_path)
+    run_simulation_multiprocess(
+        logger,
+        config.seed,
+        config.simulation,
+        config.events,
+        global_config.threads,
+        config.output_path,
+    )
+
+    if diagnostics:
+        setup_style()
+
+        from siliconai_acts.plotting.diagnostics import plot_particles
+
+        plot_particles(config, ProductionStep.Simulation)
 
 
 @application.command()
-def diagnostics() -> None:
+def diagnostics(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+) -> None:
     """Run diagnostics and make plots."""
     global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "diagnostics")
 
-    logger.info("Hello World!")
+    logger.info("Creating diagnostics plots")
 
     setup_style()
 
     from siliconai_acts.plotting.diagnostics import plot_particles
 
-    plot_particles(global_config)
+    plot_particles(config, ProductionStep.Generation)
+    plot_particles(config, ProductionStep.Simulation)

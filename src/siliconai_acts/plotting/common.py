@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ import numpy as np
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
-    from pandas import DataFrame
+    from pandas import Series
 
 
 def setup_style() -> None:
@@ -64,66 +64,50 @@ def log_binning(
     return edges
 
 
-def plot_column(
-    data: DataFrame,
-    column: str,
-    nbins: int = 25,
-    logx: bool = False,
-) -> tuple[Figure | None, Axes | None]:
-    """Plot a column from a dataframe."""
-    if data is None or data.empty:
-        return None, None
-
-    column_data = cast(list[float], data[column].tolist())  # type: ignore
-    return plot_hist([column_data], column, nbins, logx)
-
-
 def plot_hist(
-    data: list[list[float]],
+    data: list[list[float]] | list[Series[float]],
     column: str,
     nbins: int = 25,
     logx: bool = False,
-    labels: list[str] | None = None,
+    logy: bool = False,
+    label_x: str | None = None,
+    label_y: str | None = None,
+    labels_extra: list[str] | None = None,
+    legend: list[str] | None = None,
 ) -> tuple[Figure | None, Axes | None]:
     """Plot a column from a dataframe."""
     if not data:
         return None, None
 
     binning_function = log_binning if logx else linear_binning
-    binning = (
-        common_binning[column]
-        if column in common_binning
-        else binning_function(
-            nbins,
-            min(data[0]),
-            max(data[0]),
-            rounded=False,
-        )
+    binning = binning_function(
+        nbins,
+        min(data[0]),
+        max(data[0]),
+        rounded=False,
     )
 
     fig, ax = plt.subplots(figsize=(6, 4))
-    for d, label in zip(data, labels or [column]):
-        hist, bins = np.histogram(d, binning)
+    for d, label in zip(data, legend or [column]):
+        hist, bins = np.histogram(d, binning)  # type: ignore
         hep.histplot(hist, bins, ax=ax, yerr=True, label=label)
-    # TODO: make the label configurable
-    hep.atlas.label(
-        "Internal",
-        ax=ax,
-        data=False,
-        rlabel=r"$\sqrt{s} = \mathrm{13.6\ TeV}$",
+
+    for i, label in enumerate(labels_extra or []):
+        ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
+
+    ax.set_ylim(
+        ax.get_ylim()[0],
+        ax.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
     )
-    ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
-    ax.set_xlabel(column)
-    ax.set_ylabel("Tracks")
+    ax.set_xlabel(label_x or column)
+    ax.set_ylabel(label_y or "Entries")
+
+    if logx:
+        ax.set_xscale("log")
+    if logy:
+        ax.set_yscale("log")
+
     if len(data) > 1:
         plt.legend()
 
     return fig, ax
-
-
-common_binning: dict[str, list[float]] = {
-    "track_pt": linear_binning(250, 0, 1000, rounded=True),
-    "track_d0": linear_binning(100, -40, 40, rounded=False),
-    "track_z0": linear_binning(100, -250, 250, rounded=False),
-    "track_qOverP": linear_binning(100, -0.005, 0.005, rounded=False),
-}

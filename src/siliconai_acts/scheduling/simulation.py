@@ -21,6 +21,9 @@ from siliconai_acts.common.utils import rm_tree
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from siliconai_acts.cli.config import SimulationConfiguration
+    from siliconai_acts.cli.logging import Logger
+
 u = acts.UnitConstants
 
 
@@ -78,13 +81,15 @@ def schedule_simulation(
 
 
 def run_simulation(
+    seed: int,
+    config: SimulationConfiguration,
     input_path: Path,
     output_path: Path,
     events: int,
     skip: int = 0,
 ) -> None:
     """Run event simulation."""
-    rnd = acts.examples.RandomNumbers(seed=42)
+    rnd = acts.examples.RandomNumbers(seed=seed)
 
     # import detector lazily
     from siliconai_acts.common.detector import (
@@ -116,7 +121,7 @@ def run_simulation(
     schedule_simulation(
         sequencer,
         rnd,
-        SimulationType.Geant4,
+        config.type,
         odd_detector,
         odd_tracking_geometry,
         odd_field,
@@ -135,19 +140,37 @@ def run_simulation_range(
     task_id: int,
     begin_event: int,
     end_event: int,
+    seed: int,
+    config: SimulationConfiguration,
     output_path: Path,
 ) -> None:
     """Run event simulation on an event range."""
     events = end_event - begin_event
     skip = begin_event
 
-    run_simulation(output_path, output_path / f"proc_{task_id}", events, skip)
+    run_simulation(
+        seed,
+        config,
+        output_path,
+        output_path / f"proc_{task_id}",
+        events,
+        skip,
+    )
 
 
-def run_simulation_multiprocess(events: int, processes: int, output_path: Path) -> None:
+def run_simulation_multiprocess(
+    logger: Logger,
+    seed: int,
+    config: SimulationConfiguration,
+    events: int,
+    processes: int,
+    output_path: Path,
+) -> None:
     """Run event simulation in parallel."""
+    logger.info("Running event simulation")
+
     if processes <= 1:
-        run_simulation(output_path, output_path, events)
+        run_simulation(seed, config, output_path, output_path, events)
         return
 
     chunksize = events // (processes - 1)
@@ -158,7 +181,12 @@ def run_simulation_multiprocess(events: int, processes: int, output_path: Path) 
     # run the process pool
     with Pool(processes) as p:
         p.starmap(
-            partial(run_simulation_range, output_path=output_path),
+            partial(
+                run_simulation_range,
+                seed=seed,
+                config=config,
+                output_path=output_path,
+            ),
             zip(ids, begins, ends),
         )
 

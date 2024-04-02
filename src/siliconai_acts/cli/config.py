@@ -8,6 +8,8 @@ from typing import Any
 import tomli as tomllib
 import tomli_w
 
+from siliconai_acts.common.enums import EventType, ParticleType, SimulationType
+
 from .logging import Table, config_table, error_panel, info_panel
 
 
@@ -37,6 +39,10 @@ class GlobalConfiguration:
 
         self.debug: bool = debug
         self.output_path: Path = Path("run")
+        self.threads: int = 1
+
+        if "common" in config and "threads" in config["common"]:
+            self.threads = int(config["common"]["threads"])
 
         if (
             "output" in config
@@ -50,6 +56,9 @@ class GlobalConfiguration:
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""
         return {
+            "common": {
+                "threads": self.threads,
+            },
             "output": {
                 "path": str(self.output_path),
                 "debug": self.debug,
@@ -62,6 +71,7 @@ class GlobalConfiguration:
 
         table.add_row("Location:", print_path(self.location))
         table.add_row("Output path:", print_path(self.output_path))
+        table.add_row("Threads:", str(self.threads))
 
         if full_information:
             table.add_row()
@@ -103,6 +113,175 @@ class GlobalConfiguration:
             tomli_w.dump(config, f)
 
         cls(location)
+
+
+class Configuration:
+    """Task configuration."""
+
+    def __init__(self, location: Path, global_config: GlobalConfiguration) -> None:
+        """Initialize task configuration."""
+        self.location: Path = location
+
+        if not location.exists():
+            task_config_missing(location)
+
+        with location.open(mode="rb") as f:
+            config = tomllib.load(f)
+
+        # TODO: enable with Python 3.11
+        # match config:
+        #     case {
+        #         "name": str(),
+        #         "labels": list(str()),
+        #         "process": dict(),
+        #         "simulation": dict(),
+        #     }:
+        #         pass
+        #     case _:
+        #         error = f"invalid task configuration: {config}"
+        #         raise ValueError(error)
+
+        self.name: str = config["name"]
+        self.labels: list[str] = config.get("labels", [])
+        self.events: int = int(config.get("events", 1000))
+        self.seed: int = int(config.get("seed", 42))
+        self.global_config: GlobalConfiguration = global_config
+        self.output_path: Path = global_config.output_path / self.output_name
+        self.process: ProcessConfiguration = ProcessConfiguration(
+            config["process"],
+            global_config,
+        )
+        self.simulation: SimulationConfiguration = SimulationConfiguration(
+            config["simulation"],
+            global_config,
+        )
+
+        info_panel(self.to_table(), title="Task Configuration")
+        info_panel(self.process.to_table(), title="Process Configuration")
+        info_panel(self.simulation.to_table(), title="Simulation Configuration")
+
+    def __repr__(self) -> str:
+        """Return the string representation of the configuration."""
+        return self.name
+
+    @property
+    def output_name(self) -> str:
+        """Return the sanitized output name."""
+        return self.name.replace(" ", "_")
+
+    def to_object(self) -> dict[str, Any]:
+        """Convert configuration to object."""
+        return {
+            "name": self.name,
+            "labels": self.labels,
+            "events": self.events,
+            "seed": self.seed,
+            "output_name": self.output_name,
+            "output_path": self.output_path,
+        }
+
+    def to_table(self) -> Table:
+        """Convert configuration to table."""
+        table = config_table()
+
+        table.add_row("name:", self.name)
+        table.add_row("name (output):", self.output_name)
+        table.add_row("labels:", str(self.labels))
+        table.add_row("location:", print_path(self.location))
+        table.add_row("output path:", print_path(self.output_path))
+        table.add_row()
+        table.add_row("events:", str(self.events))
+        table.add_row("seed:", str(self.seed))
+
+        return table
+
+
+class ProcessConfiguration:
+    """Process configuration."""
+
+    def __init__(
+        self,
+        config: dict[str, Any],
+        _global_config: GlobalConfiguration,
+    ) -> None:
+        """Initialize process configuration."""
+        # enable with Python 3.11
+        # match config:
+        #     case {
+        #         "type": str(),
+        #         "particle": str(),
+        #         "pt": tuple(float(), float()) | float(),
+        #         "eta": tuple(float(), float()),
+        #     }:
+        #         pass
+        #     case _:
+        #         error = f"invalid task configuration: {config}"
+        #         raise ValueError(error)
+
+        self.type: EventType = EventType(config["type"])
+        self.particle: ParticleType = ParticleType(config["particle"])
+        self.pt: tuple[float, float] | float = config["pt"]
+        self.eta: tuple[float, float] = config["eta"]
+
+    def to_object(self) -> dict[str, Any]:
+        """Convert configuration to object."""
+        return {
+            "type": self.type.value,
+            "particle": self.particle.value,
+            "pt": self.pt,
+            "eta": self.eta,
+        }
+
+    def to_table(self) -> Table:
+        """Convert configuration to table."""
+        table = config_table()
+
+        table.add_row("type:", self.type.value)
+        table.add_row("particle:", self.particle.value)
+        table.add_row("pt:", str(self.pt))
+        table.add_row("eta:", str(self.eta))
+
+        return table
+
+
+class SimulationConfiguration:
+    """Simulation configuration."""
+
+    def __init__(
+        self,
+        config: dict[str, Any],
+        _global_config: GlobalConfiguration,
+    ) -> None:
+        """Initialize simulation configuration."""
+        # enable with Python 3.11
+        # match config:
+        #     case {
+        #         "type": str(),
+        #         "secondaries_min_pt": float(),
+        #     }:
+        #         pass
+        #     case _:
+        #         error = f"invalid task configuration: {config}"
+        #         raise ValueError(error)
+
+        self.type: SimulationType = SimulationType(config["type"])
+        self.secondaries_min_pt: float = config["secondaries_min_pt"]
+
+    def to_object(self) -> dict[str, Any]:
+        """Convert configuration to object."""
+        return {
+            "type": self.type.value,
+            "secondaries_min_pt": self.secondaries_min_pt,
+        }
+
+    def to_table(self) -> Table:
+        """Convert configuration to table."""
+        table = config_table()
+
+        table.add_row("type:", self.type.value)
+        table.add_row("secondaries min pt:", str(self.secondaries_min_pt))
+
+        return table
 
 
 def config_missing(config_file: Path) -> None:

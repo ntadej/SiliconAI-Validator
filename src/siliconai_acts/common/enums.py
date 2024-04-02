@@ -11,6 +11,19 @@ class ProductionStep(Enum):
     Digitization = "digi"
     Reconstruction = "reco"
 
+    @property
+    def title(self) -> str:
+        """Get human-readable title."""
+        if self is ProductionStep.Generation:
+            return "event generation"
+        if self is ProductionStep.Simulation:
+            return "simulation"
+        if self is ProductionStep.Digitization:
+            return "digitization"
+        if self is ProductionStep.Reconstruction:
+            return "reconstruction"
+        raise RuntimeError()
+
 
 class EventType(Enum):
     """Event type enum."""

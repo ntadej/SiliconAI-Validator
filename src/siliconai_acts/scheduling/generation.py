@@ -18,14 +18,16 @@ from siliconai_acts.common.enums import EventType, ParticleType
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from siliconai_acts.cli.config import ProcessConfiguration
+    from siliconai_acts.cli.logging import Logger
+
 u = acts.UnitConstants
 
 
 def schedule_event_generation(
     sequencer: acts.examples.Sequencer,
     rnd: acts.examples.RandomNumbers,
-    event_type: EventType,
-    particle_type: ParticleType = ParticleType.Muon,
+    config: ProcessConfiguration,
     output_dir: Optional[Path] = None,
 ) -> None:
     """Schedule event generation in the ACTS example framework."""
@@ -34,24 +36,30 @@ def schedule_event_generation(
         stddev=acts.Vector4(10 * u.um, 10 * u.um, 50 * u.mm, 1 * u.ns),
     )
 
-    if event_type is EventType.SingleParticle:
-        pt_label = (100, 150)
-
-        if particle_type is ParticleType.Muon:
+    if config.type is EventType.SingleParticle:
+        if config.particle is ParticleType.Muon:
             particle = acts.PdgParticle.eMuon
-        elif particle_type is ParticleType.Electron:
+        elif config.particle is ParticleType.Electron:
             particle = acts.PdgParticle.eElectron
-        elif particle_type is ParticleType.Photon:
+        elif config.particle is ParticleType.Photon:
             particle = acts.PdgParticle.ePhoton
-        elif particle_type is ParticleType.Pion:
+        elif config.particle is ParticleType.Pion:
             particle = acts.PdgParticle.ePionPlus
 
-        if isinstance(pt_label, tuple):
-            momentum_config = MomentumConfig(pt_label[0], pt_label[1], transverse=True)
-            eta_config = EtaConfig(0.2, 0.25, uniform=False)
+        if isinstance(config.pt, tuple):
+            momentum_config = MomentumConfig(
+                config.pt[0],
+                config.pt[1],
+                transverse=True,
+            )
+            eta_config = EtaConfig(config.eta[0], config.eta[1], uniform=False)
         else:
-            momentum_config = MomentumConfig(pt_label, pt_label, transverse=True)  # type: ignore
-            eta_config = EtaConfig(-3.0, 3.0, uniform=True)
+            momentum_config = MomentumConfig(
+                config.pt,
+                config.pt,
+                transverse=True,
+            )
+            eta_config = EtaConfig(config.eta[0], config.eta[1], uniform=True)
 
         addParticleGun(
             sequencer,
@@ -68,23 +76,27 @@ def schedule_event_generation(
         return
 
 
-def run_generation(output_path: Path, events: int, skip: int = 0) -> None:
+def run_generation(
+    logger: Logger,
+    seed: int,
+    config: ProcessConfiguration,
+    output_path: Path,
+    events: int,
+    skip: int = 0,
+) -> None:
     """Run event generation."""
-    rnd = acts.examples.RandomNumbers(seed=42)
+    logger.info("Running event generation")
+
+    rnd = acts.examples.RandomNumbers(seed=seed)
 
     sequencer = acts.examples.Sequencer(
         events=events,
         skip=skip,
         trackFpes=False,
         outputDir=output_path,
+        outputTimingFile="timing.evgen.csv",
     )
 
-    schedule_event_generation(
-        sequencer,
-        rnd,
-        event_type=EventType.SingleParticle,
-        particle_type=ParticleType.Muon,
-        output_dir=output_path,
-    )
+    schedule_event_generation(sequencer, rnd, config, output_path)
 
     sequencer.run()
