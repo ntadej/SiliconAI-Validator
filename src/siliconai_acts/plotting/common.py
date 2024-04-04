@@ -95,17 +95,22 @@ def plot_hist(
     for i, label in enumerate(labels_extra or []):
         ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
 
-    ax.set_ylim(
-        ax.get_ylim()[0],
-        ax.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
-    )
-    ax.set_xlabel(label_x or column)
+    ax.set_xlabel(label_x or column, labelpad=20)
     ax.set_ylabel(label_y or "Entries")
 
     if logx:
         ax.set_xscale("log")
     if logy:
         ax.set_yscale("log")
+        ax.set_ylim(
+            None,
+            ax.get_ylim()[1] * (3 * len(labels_extra or [])),
+        )
+    else:
+        ax.set_ylim(
+            ax.get_ylim()[0],
+            ax.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
+        )
 
     if len(data) > 1:
         plt.legend()

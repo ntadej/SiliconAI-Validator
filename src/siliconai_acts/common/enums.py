@@ -45,3 +45,13 @@ class SimulationType(Enum):
 
     Geant4 = "geant4"
     Fatras = "fatras"
+
+
+class SimulationParticleStatus(Enum):
+    """Simulated particle status enum."""
+
+    Alive = 0
+    Absorbed = 1
+    EscapedAndKilled = 2
+    SlowAndKilled = 3
+    SecondaryAndKilled = 4

@@ -10,4 +10,4 @@ eta = [0.2, 0.25]
 
 [simulation]
 type = "geant4"
-secondaries_min_pt = 0.001
+secondaries_min_pt = 0.01

@@ -20,6 +20,7 @@ dependencies = [
     "matplotlib == 3.8.*",
     "mplhep == 0.3.*",
     "pandas == 2.2.*",
+    "particle == 0.23.*",
     "scipy == 1.12.*",
     "tomli-w",
     "tomli",
@@ -126,7 +127,7 @@ ignore = [
 pylint = { max-args = 12 }
 
 [tool.mypy]
-# plugins = "numpy.typing.mypy_plugin"
+plugins = "numpy.typing.mypy_plugin"
 strict = true
 pretty = true
 show_column_numbers = true
