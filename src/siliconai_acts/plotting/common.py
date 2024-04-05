@@ -116,3 +116,26 @@ def plot_hist(
         plt.legend()
 
     return fig, ax
+
+
+def plot_scatter(
+    data_x: list[list[float]] | list[Series[float]],
+    data_y: list[list[float]] | list[Series[float]],
+    label_x: str | None = None,
+    label_y: str | None = None,
+    labels_extra: list[str] | None = None,
+) -> tuple[Figure | None, Axes | None]:
+    """Plot a scatter plot from a dataframe."""
+    if not data_x or not data_y:
+        return None, None
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(data_x[0], data_y[0], s=0.1)
+
+    for i, label in enumerate(labels_extra or []):
+        ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
+
+    ax.set_xlabel(label_x)
+    ax.set_ylabel(label_y)
+
+    return fig, ax

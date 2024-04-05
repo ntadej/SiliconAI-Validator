@@ -12,7 +12,7 @@ import uproot
 from particle.pdgid import literals as particle_literals
 
 from siliconai_acts.common.enums import ProductionStep, SimulationParticleStatus
-from siliconai_acts.plotting.common import plot_hist
+from siliconai_acts.plotting.common import plot_hist, plot_scatter
 from siliconai_acts.plotting.utils import PDFDocument
 
 if TYPE_CHECKING:
@@ -40,6 +40,16 @@ common_labels = {
     "e_loss": r"Particle energy loss [GeV]",
     "number_of_hits": r"Particle number of hits",
     "number_secondary_particles": r"Number of secondary particles",
+    "tr": r"Hit $r$ [mm]",
+    "tx": r"Hit $x$ [mm]",
+    "ty": r"Hit $y$ [mm]",
+    "tz": r"Hit $z$ [mm]",
+    "tt": r"Hit $t$ [ns]",
+    "deltae": r"Hit energy loss [GeV]",
+    "deltapt": r"Hit transverse momentum change $\Delta p_\mathrm{T}$ [GeV]",
+    "deltapx": r"Hit momentum change $\Delta p_x$ [GeV]",
+    "deltapy": r"Hit momentum change $\Delta p_y$ [GeV]",
+    "deltapz": r"Hit momentum change $\Delta p_z$ [GeV]",
 }
 
 common_scales = {
@@ -48,11 +58,23 @@ common_scales = {
     "vy": u.um,
     "vz": u.mm,
     "vt": u.ns,
+    "tt": u.ns,
 }
 
+common_logx = {
+    "deltae": False,
+}
 common_logy = {
     "e_loss": True,
+    "deltae": True,
+    "deltapt": True,
+    "deltapx": True,
+    "deltapy": True,
+    "deltapz": True,
 }
+
+common_initial_barcode = 4503599644147712
+pixel_boundary_r = 200
 
 
 def diagnostics_label(container: str, step: ProductionStep) -> str:
@@ -67,13 +89,17 @@ def diagnostics_plot(
     label_x_base: str,
     label_y: str,
     labels_extra: list[str],
+    logx: Optional[bool] = None,
     logy: Optional[bool] = None,
 ) -> bool:
     """Diagnostics plot helper function."""
     label_x = common_labels.get(column)
     if label_x:
         label_x = label_x.replace("Particle", label_x_base)
+        label_x = label_x.replace("Hit", label_x_base)
 
+    if logx is None:
+        logx = common_logx.get(column, False)
     if logy is None:
         logy = common_logy.get(column, False)
 
@@ -83,10 +109,50 @@ def diagnostics_plot(
         label_x=label_x,
         label_y=label_y,
         labels_extra=labels_extra,
+        logx=logx,
         logy=logy,
     )
     if not fig:
         return False
+    fig.set_size_inches(6, 5)
+    pdf.save(fig)
+    plt.close(fig)
+    return True
+
+
+def diagnostics_scatter_plot(
+    pdf: PDFDocument,
+    values_x: pd.Series[float] | np.typing.ArrayLike,
+    values_y: pd.Series[float] | np.typing.ArrayLike,
+    column_x: str,
+    column_y: str,
+    label_x_base: str,
+    label_y_base: str,
+    labels_extra: list[str],
+    aspect: Optional[float] = None,
+) -> bool:
+    """Diagnostics scatter plot helper function."""
+    label_x = common_labels.get(column_x)
+    if label_x:
+        label_x = label_x.replace("Particle", label_x_base)
+        label_x = label_x.replace("Hit", label_x_base)
+    label_y = common_labels.get(column_y)
+    if label_y:
+        label_y = label_y.replace("Particle", label_y_base)
+        label_y = label_y.replace("Hit", label_y_base)
+
+    fig, ax = plot_scatter(
+        [values_x / common_scales.get(column_x, 1)],
+        [values_y / common_scales.get(column_y, 1)],
+        label_x=label_x,
+        label_y=label_y,
+        labels_extra=labels_extra,
+    )
+
+    if not fig:
+        return False
+    if ax and aspect:
+        ax.set_aspect(aspect)
     fig.set_size_inches(6, 5)
     pdf.save(fig)
     plt.close(fig)
@@ -123,7 +189,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
 
     file_path = config.output_path / file_name
     particles = uproot.open(f"{file_path}:particles").arrays()
-    particles_data: pd.DataFrame = process_particles(particles)
+    particles_data: pd.DataFrame = process_particles(particles, primary=True)
     particles_data_secondary: pd.DataFrame = process_particles(particles, primary=False)
     events = len(particles_data.index)
 
@@ -228,6 +294,8 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                 "constant",
             )
 
+            # print(secondary_special[["particle_type", "vr"]])
+
             for counts in [
                 particle_counts,
                 particle_counts_cut,
@@ -277,3 +345,153 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                     labels_extra_special,
                     logy=True,
                 )
+
+
+def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
+    """Process hits."""
+    tmp = hits[:]
+
+    data_frame: pd.DataFrame
+    data_frame = ak.to_dataframe(tmp)
+    if primary:
+        data_frame = data_frame[data_frame["particle_id"] == common_initial_barcode]
+    else:
+        data_frame = data_frame[data_frame["particle_id"] != common_initial_barcode]
+
+    data_frame["deltae"] = np.abs(data_frame["deltae"])
+
+    data_frame.insert(3, "tr", np.sqrt(data_frame["tx"] ** 2 + data_frame["ty"] ** 2))
+    data_frame.insert(
+        8,
+        "tpt",
+        np.sqrt(data_frame["tpx"] ** 2 + data_frame["tpy"] ** 2),
+    )
+    data_frame.insert(
+        13,
+        "deltapt",
+        np.sqrt(
+            (data_frame["tpx"] + data_frame["deltapx"]) ** 2
+            + (data_frame["tpy"] + data_frame["deltapy"]) ** 2,
+        )
+        - data_frame["tpt"],
+    )
+    return data_frame
+
+
+def plot_hits(config: Configuration) -> None:
+    """Plot hits."""
+    file_name = "hits.root"
+    out_file_name = "diagnostics_" + file_name.replace(".root", ".pdf")
+
+    file_path = config.output_path / file_name
+    hits = uproot.open(f"{file_path}:hits").arrays()
+    hits_data_primary: pd.DataFrame = process_hits(hits, primary=True)
+    hits_data_secondary: pd.DataFrame = process_hits(hits, primary=False)
+
+    hits_data_primary_pixel = hits_data_primary[
+        hits_data_primary["tr"] < pixel_boundary_r
+    ]
+    hits_data_secondary_pixel = hits_data_secondary[
+        hits_data_secondary["tr"] < pixel_boundary_r
+    ]
+
+    columns_position = [
+        "tr",
+        "tx",
+        "ty",
+        "tz",
+        "tt",
+    ]
+    columns_momentum = [
+        "deltae",
+        "deltapt",
+        "deltapx",
+        "deltapy",
+        "deltapz",
+    ]
+    columns = columns_position + columns_momentum
+
+    labels_extra = [
+        *config.labels,
+        f"{config.events} events, simulated hits",
+    ]
+    labels_extra_primary = [
+        *labels_extra,
+        "primary particles only",
+    ]
+    labels_extra_primary_pixel = [
+        *labels_extra,
+        "primary particles only, pixel only",
+    ]
+    labels_extra_secondary = [
+        *labels_extra,
+        "secondary particles only",
+    ]
+    labels_extra_secondary_pixel = [
+        *labels_extra,
+        "secondary particles only, pixel only",
+    ]
+
+    with PDFDocument(config.output_path / out_file_name) as pdf:  # type: ignore
+        for data, label_base, labels in zip(
+            [
+                hits_data_primary,
+                hits_data_primary_pixel,
+                hits_data_secondary,
+                hits_data_secondary_pixel,
+            ],
+            [
+                "Primary hit",
+                "Primary hit",
+                "Secondary hit",
+                "Secondary hit",
+            ],
+            [
+                labels_extra_primary,
+                labels_extra_primary_pixel,
+                labels_extra_secondary,
+                labels_extra_secondary_pixel,
+            ],
+        ):
+            diagnostics_scatter_plot(
+                pdf,
+                data["tx"],
+                data["ty"],
+                "tx",
+                "ty",
+                label_base,
+                label_base,
+                labels,
+                aspect=1,
+            )
+
+            diagnostics_scatter_plot(
+                pdf,
+                data["tz"],
+                data["tr"],
+                "tz",
+                "tr",
+                label_base,
+                label_base,
+                labels,
+            )
+
+        for column in columns:
+            diagnostics_plot(
+                pdf,
+                hits_data_primary[column],
+                column,
+                "Primary hit",
+                "Hits",
+                labels_extra_primary,
+            )
+
+        for column in columns:
+            diagnostics_plot(
+                pdf,
+                hits_data_secondary[column],
+                column,
+                "Secondary hit",
+                "Hits",
+                labels_extra_secondary,
+            )
