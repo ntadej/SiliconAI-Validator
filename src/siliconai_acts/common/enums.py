@@ -47,11 +47,11 @@ class SimulationType(Enum):
     Fatras = "fatras"
 
 
-class SimulationParticleStatus(Enum):
-    """Simulated particle status enum."""
+class SimulationParticleOutcome(Enum):
+    """Simulated particle outcome enum."""
 
     Alive = 0
-    Absorbed = 1
+    Interaction = 1
     EscapedAndKilled = 2
     SlowAndKilled = 3
     SecondaryAndKilled = 4

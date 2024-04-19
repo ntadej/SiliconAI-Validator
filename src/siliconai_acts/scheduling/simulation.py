@@ -38,9 +38,22 @@ def schedule_simulation(
     output_path: Optional[Path] = None,
     preselect_particles: Optional[ParticleSelectorConfig] = None,
     postselect_particles: Optional[ParticleSelectorConfig] = None,
+    region_cuts: Optional[bool] = False,
     log_level: Optional[acts.logging.Level] = None,
 ) -> None:
     """Schedule event simulation in the ACTS example framework."""
+    region_list: list[RegionCreator] = []
+    if region_cuts:
+        region_list = [
+            RegionCreator(
+                name="TrackingRegion",
+                volumes=["Pixels", "ShortStrips", "LongStrips"],
+                electronCut=0.05,
+                positronCut=0.05,
+                gammaCut=0.05,
+            ),
+        ]
+
     if simulation_type is SimulationType.Fatras:
         addFatras(
             sequencer,
@@ -68,15 +81,7 @@ def schedule_simulation(
             killAfterTime=25 * u.ns,
             outputDirRoot=output_path,
             logLevel=log_level,
-            regionList=[
-                RegionCreator(
-                    name="TrackingRegion",
-                    volumes=["Pixels", "ShortStrips", "LongStrips"],
-                    electronCut=0.05 * 100,
-                    positronCut=0.05 * 100,
-                    gammaCut=0.05 * 100,
-                ),
-            ],
+            regionList=region_list,
         )
 
 
@@ -131,6 +136,7 @@ def run_simulation(
             absZ=(0.0, 1.0 * u.m),
         ),
         output_path=output_path,
+        region_cuts=False,
     )
 
     sequencer.run()

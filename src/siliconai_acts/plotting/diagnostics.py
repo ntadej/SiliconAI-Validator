@@ -11,7 +11,7 @@ import numpy as np
 import uproot
 from particle.pdgid import literals as particle_literals
 
-from siliconai_acts.common.enums import ProductionStep, SimulationParticleStatus
+from siliconai_acts.common.enums import ProductionStep, SimulationParticleOutcome
 from siliconai_acts.plotting.common import plot_hist, plot_scatter
 from siliconai_acts.plotting.utils import PDFDocument
 
@@ -252,8 +252,8 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
         if step is ProductionStep.Simulation:
             secondary_useful_base = particles_data_secondary[
                 (
-                    particles_data_secondary["status"]
-                    == SimulationParticleStatus.EscapedAndKilled.value
+                    particles_data_secondary["outcome"]
+                    == SimulationParticleOutcome.EscapedAndKilled.value
                 )
                 | (particles_data_secondary["number_of_hits"] > 0)
             ]
