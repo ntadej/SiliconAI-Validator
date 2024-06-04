@@ -171,6 +171,45 @@ def simulate(
 
 
 @application.command()
+def digitize(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+    diagnostics: Annotated[
+        bool,
+        typer.Option(
+            "-d",
+            "--diagnostics",
+            help="Prepare diagnostics plots.",
+        ),
+    ] = False,
+) -> None:
+    """Generate particles."""
+    global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
+    logger = setup_logger(global_config, "digitize")
+
+    from siliconai_acts.scheduling.digitization import run_digitization
+
+    run_digitization(
+        logger,
+        config.seed,
+        config.events,
+        config.output_path,
+        # global_config.threads,
+    )
+
+    if diagnostics:
+        pass
+
+
+@application.command()
 def diagnostics(
     config_file: Annotated[
         Path,
