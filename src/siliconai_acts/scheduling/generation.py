@@ -33,7 +33,8 @@ def schedule_event_generation(
     """Schedule event generation in the ACTS example framework."""
     vertex_generator = acts.examples.GaussianVertexGenerator(
         mean=acts.Vector4(0, 0, 0, 0),
-        stddev=acts.Vector4(10 * u.um, 10 * u.um, 50 * u.mm, 1 * u.ns),
+        # stddev=acts.Vector4(10 * u.um, 10 * u.um, 50 * u.mm, 1 * u.ns),
+        stddev=acts.Vector4(0, 0, 50 * u.mm, 0),
     )
 
     if config.type is EventType.SingleParticle:
