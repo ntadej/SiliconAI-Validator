@@ -45,6 +45,8 @@ common_labels = {
     "ty": r"Hit $y$ [mm]",
     "tz": r"Hit $z$ [mm]",
     "tt": r"Hit $t$ [ns]",
+    "lx": r"Hit surface $x$",
+    "ly": r"Hit surface $y$",
     "deltae": r"Hit energy loss [GeV]",
     "deltapt": r"Hit transverse momentum change $\Delta p_\mathrm{T}$ [GeV]",
     "deltapx": r"Hit momentum change $\Delta p_x$ [GeV]",
@@ -375,6 +377,18 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
         )
         - data_frame["tpt"],
     )
+
+    from siliconai_acts.data.utils import global_to_local_vec
+
+    local_data = global_to_local_vec(
+        data_frame["geometry_id"],
+        data_frame["tx"],
+        data_frame["ty"],
+        data_frame["tz"],
+    )
+    data_frame["lx"] = local_data[0]
+    data_frame["ly"] = local_data[1]
+
     return data_frame
 
 
@@ -402,6 +416,10 @@ def plot_hits(config: Configuration) -> None:
         "tz",
         "tt",
     ]
+    columns_local_position = [
+        "lx",
+        "ly",
+    ]
     columns_momentum = [
         "deltae",
         "deltapt",
@@ -409,7 +427,7 @@ def plot_hits(config: Configuration) -> None:
         "deltapy",
         "deltapz",
     ]
-    columns = columns_position + columns_momentum
+    columns = columns_position + columns_local_position + columns_momentum
 
     labels_extra = [
         *config.labels,
