@@ -210,6 +210,30 @@ def digitize(
 
 
 @application.command()
+def export(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+) -> None:
+    """Export events."""
+    global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
+    logger = setup_logger(global_config, "export")
+
+    logger.info("Exporting data")
+
+    from siliconai_acts.data.export import export_hits
+
+    export_hits(config)
+
+
+@application.command()
 def diagnostics(
     config_file: Annotated[
         Path,

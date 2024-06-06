@@ -387,7 +387,9 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
         data_frame["tz"],
     )
     data_frame["lx"] = local_data[0]
+    data_frame["lx"] = data_frame["lx"].astype("float32")
     data_frame["ly"] = local_data[1]
+    data_frame["ly"] = data_frame["ly"].astype("float32")
 
     return data_frame
 
