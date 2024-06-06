@@ -68,6 +68,7 @@ def plot_hist(
     data: list[list[float]] | list[Series[float]],
     column: str,
     nbins: int = 25,
+    bin_range: tuple[float, float] | None = None,
     logx: bool = False,
     logy: bool = False,
     label_x: str | None = None,
@@ -82,8 +83,8 @@ def plot_hist(
     binning_function = log_binning if logx else linear_binning
     binning = binning_function(
         nbins,
-        min(data[0]),
-        max(data[0]),
+        bin_range[0] if bin_range else min(data[0]),
+        bin_range[1] if bin_range else max(data[0]),
         rounded=False,
     )
 

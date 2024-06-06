@@ -75,6 +75,23 @@ common_logy = {
     "deltapz": True,
 }
 
+common_binning = {
+    # "particle_type": (31, -15.5, 15.5),
+    "q": (3, -1.5, 1.5),
+    "number_of_hits": (20, 0, 20),
+    "number_secondary_particles": (40, 0, 40),
+    "vr": (50, -200, 200),
+    "vx": (50, -200, 200),
+    "vy": (50, -200, 200),
+    "vz": (50, -200, 200),
+    "tr": (40, 0, 1200),
+    "tx": (100, -1500, 1500),
+    "ty": (100, -1500, 1500),
+    "tz": (40, -600, 600),
+    "lx": (110, -55, 55),
+    "ly": (110, -55, 55),
+}
+
 common_initial_barcode = 4503599644147712
 pixel_boundary_r = 200
 
@@ -104,6 +121,11 @@ def diagnostics_plot(
         logx = common_logx.get(column, False)
     if logy is None:
         logy = common_logy.get(column, False)
+    binning = common_binning.get(column)
+    nbins = binning[0] if binning else 25
+    bin_range = binning[1:] if binning else None
+    if bin_range and bin_range[0] == bin_range[1] and not bin_range[0]:
+        bin_range = None
 
     fig, ax = plot_hist(
         [values / common_scales.get(column, 1)],
@@ -111,6 +133,8 @@ def diagnostics_plot(
         label_x=label_x,
         label_y=label_y,
         labels_extra=labels_extra,
+        nbins=nbins,
+        bin_range=bin_range,
         logx=logx,
         logy=logy,
     )
@@ -181,7 +205,7 @@ def process_particles(particles: ak.Array, primary: bool = True) -> pd.DataFrame
     return data_frame
 
 
-def plot_particles(config: Configuration, step: ProductionStep) -> None:
+def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa: C901
     """Plot particles."""
     if step is ProductionStep.Simulation:
         file_name = "particles_simulation.root"
@@ -215,7 +239,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
         "vx",
         "vy",
         "vz",
-        "vt",
+        # "vt",
     ]
     columns = columns_base + columns_position + columns_momentum
     if step is ProductionStep.Generation:
@@ -234,10 +258,6 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
         labels_extra_with_cut = [
             *labels_extra,
             rf"with $p_\mathrm{{T}} > {cut:.2f}$ GeV",
-        ]
-        labels_extra_special = [
-            *labels_extra,
-            rf"with PDG ID > {particle_literals.gamma.abspid}",  # type: ignore
         ]
 
     with PDFDocument(config.output_path / out_file_name) as pdf:  # type: ignore
@@ -264,10 +284,6 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                 <= particle_literals.gamma.abspid  # type: ignore
             ]
             secondary_cut = secondary_useful[secondary_useful["pt"] > cut]
-            secondary_special = secondary_useful_base[
-                abs(secondary_useful_base["particle_type"])
-                > particle_literals.gamma.abspid  # type: ignore
-            ]
 
             particle_counts = (
                 secondary_useful.groupby(["event_id"])["particle_id"].count().to_numpy()
@@ -285,23 +301,10 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                 (0, events - len(particle_counts_cut)),
                 "constant",
             )
-            particle_counts_special = (
-                secondary_special.groupby(["event_id"])["particle_id"]
-                .count()
-                .to_numpy()
-            )
-            particle_counts_special = np.pad(
-                particle_counts_special,
-                (0, events - len(particle_counts_special)),
-                "constant",
-            )
-
-            # print(secondary_special[["particle_type", "vr"]])
 
             for counts in [
                 particle_counts,
                 particle_counts_cut,
-                particle_counts_special,
             ]:
                 diagnostics_plot(
                     pdf,
@@ -309,15 +312,15 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                     "number_secondary_particles",
                     "",
                     "Events",
-                    labels_extra_special
-                    if counts is particle_counts_special
-                    else labels_extra_with_cut
+                    labels_extra_with_cut
                     if counts is particle_counts_cut
                     else labels_extra,
                     logy=True,
                 )
 
             for column in columns_secondary:
+                if column[0] == "v":
+                    continue
                 diagnostics_plot(
                     pdf,
                     secondary_useful[column],
@@ -328,6 +331,8 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                     logy=True,
                 )
             for column in columns_secondary:
+                if column[0] == "v":
+                    continue
                 diagnostics_plot(
                     pdf,
                     secondary_cut[column],
@@ -335,16 +340,6 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:
                     "Secondary particle",
                     "Particles",
                     labels_extra_with_cut,
-                    logy=True,
-                )
-            for column in columns_secondary:
-                diagnostics_plot(
-                    pdf,
-                    secondary_special[column],
-                    column,
-                    "Secondary particle",
-                    "Particles",
-                    labels_extra_special,
                     logy=True,
                 )
 
@@ -416,7 +411,7 @@ def plot_hits(config: Configuration) -> None:
         "tx",
         "ty",
         "tz",
-        "tt",
+        # "tt",
     ]
     columns_local_position = [
         "lx",

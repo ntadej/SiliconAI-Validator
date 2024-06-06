@@ -20,5 +20,6 @@ odd_material_decorator: acts.IMaterialDecorator = acts.IMaterialDecorator.fromFi
 odd_detector, odd_tracking_geometry, odd_decorators = getOpenDataDetector(
     odd_material_decorator,
     odd_directory,
+    logLevel=acts.logging.ERROR,
 )
 odd_field = acts.ConstantBField(acts.Vector3(0.0, 0.0, 2.0 * u.T))

@@ -1,5 +1,6 @@
 """SiliconAI ACTS CLI."""
 
+from os import environ
 from pathlib import Path
 from sys import argv
 from typing import Annotated
@@ -108,6 +109,8 @@ def generate(
     config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "generate")
 
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
     from siliconai_acts.scheduling.generation import run_generation
 
     run_generation(
@@ -150,6 +153,8 @@ def simulate(
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "simulate")
+
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
     from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
 
@@ -195,6 +200,8 @@ def digitize(
     config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "digitize")
 
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
     from siliconai_acts.scheduling.digitization import run_digitization
 
     run_digitization(
@@ -226,6 +233,8 @@ def export(
     config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "export")
 
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
     logger.info("Exporting data")
 
     from siliconai_acts.data.export import export_hits
@@ -249,6 +258,8 @@ def diagnostics(
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
     logger = setup_logger(global_config, "diagnostics")
+
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
     logger.info("Creating diagnostics plots")
 
