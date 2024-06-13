@@ -239,7 +239,7 @@ def export(
 
     from siliconai_acts.data.export import export_hits
 
-    export_hits(config)
+    export_hits(logger, config)
 
 
 @application.command()
