@@ -30,3 +30,6 @@ if [[ ":${PATH}:" != *":${PDM_HOME}/bin:"* ]]; then
     export PATH="${PATH}:${PDM_HOME}/bin"
     echo "PATH updated to include PDM: ${PDM_HOME}/bin"
 fi
+
+# Add PDM alias
+alias pdm="PYTHONHOME=${LCG_PYTHONHOME} PYTHONPATH=${LCG_PYTHONPATH} pdm"

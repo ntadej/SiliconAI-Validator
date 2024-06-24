@@ -3,7 +3,7 @@ name = "siliconai-acts"
 version = "0.1.0"
 description = "SiliconAI companion package for ACTS integration"
 authors = [{ name = "Tadej Novak", email = "tadej.novak@cern.ch" }]
-requires-python = "==3.9.*"
+requires-python = "==3.11.*"
 readme = "README.md"
 license = { text = "MPL-2.0" }
 classifiers = [
@@ -12,13 +12,14 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
     "matplotlib == 3.9.*",
     "mplhep == 0.3.*",
+    "numpy == 1.26.*",
     "pandas == 2.2.*",
     "particle == 0.24.*",
     "scipy == 1.13.*",
@@ -44,7 +45,7 @@ dev = [
     "pytest >= 7.0",
     "pytest-cov",
     "pytest-forked",
-    "ruff == 0.4.8",
+    "ruff == 0.4.10",
 ]
 
 [tool.pdm.scripts]

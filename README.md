@@ -4,7 +4,7 @@
 
 ### Python and LCG environment
 
-Python 3.9 or later is required to run the code. LCG environment can be used
+Python 3.11 or later is required to run the code. LCG environment can be used
 to simplify the dependency setup for ACTS. In that case run
 
 ```bash
