@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import tomli as tomllib
 import tomli_w
+import tomllib
 
 from siliconai_acts.common.enums import EventType, ParticleType, SimulationType
 

@@ -25,7 +25,6 @@ dependencies = [
     "scipy == 1.13.*",
     "tables == 3.9.*",
     "tomli-w",
-    "tomli",
     "typer[all] == 0.9.*",
     "uproot == 5.3.*",
 ]
