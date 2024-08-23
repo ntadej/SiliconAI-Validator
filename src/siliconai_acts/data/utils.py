@@ -22,7 +22,7 @@ def global_to_local(
 ) -> tuple[float, float]:
     """Convert global coordinates to local coordinates."""
     if geometry_id == 0:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0
 
     return coordinates_converter.globalToLocal(geometry_id, tx, ty, tz)  # type: ignore
 

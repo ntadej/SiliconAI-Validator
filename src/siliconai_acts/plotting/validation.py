@@ -8,10 +8,7 @@ import numpy as np
 import pandas as pd
 
 from siliconai_acts.data.export import geometry_id_end, geometry_id_start
-from siliconai_acts.plotting.diagnostics import (
-    diagnostics_plot,
-    pixel_boundary_r,
-)
+from siliconai_acts.plotting.diagnostics import diagnostics_plot
 from siliconai_acts.plotting.utils import PDFDocument
 
 if TYPE_CHECKING:
@@ -48,8 +45,6 @@ def preprocess_input(file: Path, key: str) -> pd.DataFrame:
     data["tz"] = global_data[2]
     data["tz"] = data["tz"].astype("float32")
     data["tr"] = np.sqrt(data["tx"] ** 2 + data["ty"] ** 2)
-
-    print(data)
 
     return data
 

@@ -136,7 +136,9 @@ def plot_scatter(
     for i, label in enumerate(labels_extra or []):
         ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
 
-    ax.set_xlabel(label_x)
-    ax.set_ylabel(label_y)
+    if label_x:
+        ax.set_xlabel(label_x)
+    if label_y:
+        ax.set_ylabel(label_y)
 
     return fig, ax
