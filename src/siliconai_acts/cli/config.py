@@ -128,18 +128,17 @@ class Configuration:
         with location.open(mode="rb") as f:
             config = tomllib.load(f)
 
-        # TODO: enable with Python 3.11
-        # match config:
-        #     case {
-        #         "name": str(),
-        #         "labels": list(str()),
-        #         "process": dict(),
-        #         "simulation": dict(),
-        #     }:
-        #         pass
-        #     case _:
-        #         error = f"invalid task configuration: {config}"
-        #         raise ValueError(error)
+        match config:
+            case {
+                "name": str(),
+                "labels": list(),
+                "process": dict(),
+                "simulation": dict(),
+            }:
+                pass
+            case _:
+                error = f"invalid task configuration: {config}"
+                raise ValueError(error)
 
         self.name: str = config["name"]
         self.labels: list[str] = config.get("labels", [])
@@ -205,18 +204,17 @@ class ProcessConfiguration:
         _global_config: GlobalConfiguration,
     ) -> None:
         """Initialize process configuration."""
-        # enable with Python 3.11
-        # match config:
-        #     case {
-        #         "type": str(),
-        #         "particle": str(),
-        #         "pt": tuple(float(), float()) | float(),
-        #         "eta": tuple(float(), float()),
-        #     }:
-        #         pass
-        #     case _:
-        #         error = f"invalid task configuration: {config}"
-        #         raise ValueError(error)
+        match config:
+            case {
+                "type": str(),
+                "particle": str(),
+                "pt": tuple() | float() | int(),
+                "eta": tuple() | float(),
+            }:
+                pass
+            case _:
+                error = f"invalid task configuration: {config}"
+                raise ValueError(error)
 
         self.type: EventType = EventType(config["type"])
         self.particle: ParticleType = ParticleType(config["particle"])
@@ -253,16 +251,15 @@ class SimulationConfiguration:
         _global_config: GlobalConfiguration,
     ) -> None:
         """Initialize simulation configuration."""
-        # enable with Python 3.11
-        # match config:
-        #     case {
-        #         "type": str(),
-        #         "secondaries_min_pt": float(),
-        #     }:
-        #         pass
-        #     case _:
-        #         error = f"invalid task configuration: {config}"
-        #         raise ValueError(error)
+        match config:
+            case {
+                "type": str(),
+                "secondaries_min_pt": float(),
+            }:
+                pass
+            case _:
+                error = f"invalid task configuration: {config}"
+                raise ValueError(error)
 
         self.type: SimulationType = SimulationType(config["type"])
         self.secondaries_min_pt: float = config["secondaries_min_pt"]
