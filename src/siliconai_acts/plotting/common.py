@@ -131,7 +131,7 @@ def plot_scatter(
         return None, None
 
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(data_x[0], data_y[0], s=0.1)
+    ax.scatter(data_x[0][:10000], data_y[0][:10000], s=0.1)
 
     for i, label in enumerate(labels_extra or []):
         ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)

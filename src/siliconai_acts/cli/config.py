@@ -221,7 +221,7 @@ class ProcessConfiguration:
         self.type: EventType = EventType(config["type"])
         self.particle: ParticleType = ParticleType(config["particle"])
         self.pt: tuple[float, float] | float = config["pt"]
-        self.eta: tuple[float, float] = config["eta"]
+        self.eta: tuple[float, float] | float = config["eta"]
 
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""

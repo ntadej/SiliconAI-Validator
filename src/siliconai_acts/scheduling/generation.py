@@ -53,14 +53,17 @@ def schedule_event_generation(
                 config.pt[1],
                 transverse=True,
             )
-            eta_config = EtaConfig(config.eta[0], config.eta[1], uniform=False)
         else:
             momentum_config = MomentumConfig(
                 config.pt,
                 config.pt,
                 transverse=True,
             )
+
+        if isinstance(config.eta, tuple):
             eta_config = EtaConfig(config.eta[0], config.eta[1], uniform=True)
+        else:
+            eta_config = EtaConfig(config.eta, config.eta, uniform=True)
 
         addParticleGun(
             sequencer,
