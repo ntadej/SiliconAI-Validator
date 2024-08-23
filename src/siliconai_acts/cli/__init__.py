@@ -270,3 +270,40 @@ def diagnostics(
     plot_particles(config, ProductionStep.Generation)
     plot_particles(config, ProductionStep.Simulation)
     plot_hits(config)
+
+
+@application.command()
+def validate(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+    file: Annotated[
+        Path,
+        typer.Option(
+            "-f",
+            "--file",
+            envvar="SILICONAI_ACTS_FILE",
+            help="Output file to validate.",
+        ),
+    ],
+) -> None:
+    """Validate ML results."""
+    global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
+    logger = setup_logger(global_config, "validate")
+
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
+    logger.info("Validating results")
+
+    setup_style()
+
+    from siliconai_acts.plotting.validation import validate
+
+    validate(config, file)

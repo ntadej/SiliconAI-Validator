@@ -103,13 +103,14 @@ def diagnostics_label(container: str, step: ProductionStep) -> str:
 
 def diagnostics_plot(
     pdf: PDFDocument,
-    values: pd.Series[float] | np.typing.ArrayLike,
+    values: pd.Series[float] | list[float] | list[pd.Series[float]] | list[list[float]],
     column: str,
     label_x_base: str,
     label_y: str,
     labels_extra: list[str],
     logx: Optional[bool] = None,
     logy: Optional[bool] = None,
+    legend: Optional[list[str]] = None,
 ) -> bool:
     """Diagnostics plot helper function."""
     label_x = common_labels.get(column)
@@ -127,8 +128,14 @@ def diagnostics_plot(
     if bin_range and bin_range[0] == bin_range[1] and not bin_range[0]:
         bin_range = None
 
+    values_out: list[pd.Series[float]] | list[list[float]]
+    if isinstance(values, list):
+        values_out = [value / common_scales.get(column, 1) for value in values]
+    else:
+        values_out = [values / common_scales.get(column, 1)]
+
     fig, ax = plot_hist(
-        [values / common_scales.get(column, 1)],
+        values_out,
         column,
         label_x=label_x,
         label_y=label_y,
@@ -137,6 +144,7 @@ def diagnostics_plot(
         bin_range=bin_range,
         logx=logx,
         logy=logy,
+        legend=legend,
     )
     if not fig:
         return False
