@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from siliconai_acts.cli.logging import Logger
 
 
-geometry_id_start = 10000
-geometry_id_end = 10001
+geometry_id_start = 1000000
+geometry_id_end = 1000001
 
 
 def process_particle_vertices_as_hits(
@@ -40,7 +40,14 @@ def process_particle_vertices_as_hits(
     vertex_data["geometry_id"] = vertex_data["geometry_id"].astype("uint64")
 
     vertex_data = vertex_data.rename(
-        columns={"vx": "tx", "vy": "ty", "vz": "tz"},
+        columns={
+            "vx": "tx",
+            "vy": "ty",
+            "vz": "tz",
+            "px": "tpx",
+            "py": "tpy",
+            "pz": "tpz",
+        },
     )
     if end_vertex:
         vertex_data["tz"] = vertex_data["tx"]
@@ -50,8 +57,22 @@ def process_particle_vertices_as_hits(
         vertex_data["lx"] = vertex_data["tx"]
         vertex_data["ly"] = vertex_data["tz"] / vertex_data["tz"].abs().max() * 50
 
-    vertex_data["lxq"] = vertex_data["lx"].round(2)
-    vertex_data["lyq"] = vertex_data["ly"].round(2)
+    vertex_data["lxq"] = (
+        vertex_data["lx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    )
+    vertex_data["lyq"] = (
+        vertex_data["ly"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    )
+
+    vertex_data["tpxq"] = (
+        vertex_data["tpx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    )
+    vertex_data["tpyq"] = (
+        vertex_data["tpy"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    )
+    vertex_data["tpzq"] = (
+        vertex_data["tpz"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    )
 
     return vertex_data.sort_index()
 
@@ -60,7 +81,16 @@ def export_hits(logger: Logger, config: Configuration) -> None:
     """Export hits for ML usage."""
     logger.info("Loading particles data...")
     particles_columns_common = ["event_id", "particle_type", "number_of_hits"]
-    particles_columns_vertex = ["event_id", "vx", "vy", "vz", "number_of_hits"]
+    particles_columns_vertex = [
+        "event_id",
+        "vx",
+        "vy",
+        "vz",
+        "px",
+        "py",
+        "pz",
+        "number_of_hits",
+    ]
     particles_file_path = config.output_path / "particles_simulation.root"
     particles = uproot.open(f"{particles_file_path}:particles").arrays()
     logger.info("Processing particles data...")
@@ -83,9 +113,22 @@ def export_hits(logger: Logger, config: Configuration) -> None:
         particles_data_vertex_end,
         end_vertex=True,
     )
+    # TODO: fix end vertex pt
 
     logger.info("Loading hits data...")
-    hits_columns = ["event_id", "geometry_id", "index", "tx", "ty", "tz", "lx", "ly"]
+    hits_columns = [
+        "event_id",
+        "geometry_id",
+        "index",
+        "tx",
+        "ty",
+        "tz",
+        "tpx",
+        "tpy",
+        "tpz",
+        "lx",
+        "ly",
+    ]
     hits_file_path = config.output_path / "hits.root"
     hits = uproot.open(f"{hits_file_path}:hits").arrays()
     logger.info("Processing hits data...")
@@ -94,10 +137,12 @@ def export_hits(logger: Logger, config: Configuration) -> None:
     hits_data = hits_data.set_index(["event_id", "index"])
     hits_data = hits_data.sort_index()
     hits_data["lxq"] = hits_data["lx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_data["lyq"] = (
-        hits_data["ly"].round(2).round(2).map(lambda x: np.trunc(100 * x) / 100)
-    )
+    hits_data["lyq"] = hits_data["ly"].round(2).map(lambda x: np.trunc(100 * x) / 100)
     hits_columns += ["lxq", "lyq"]
+    hits_data["tpxq"] = hits_data["tpx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    hits_data["tpyq"] = hits_data["tpy"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    hits_data["tpzq"] = hits_data["tpz"].round(2).map(lambda x: np.trunc(100 * x) / 100)
+    hits_columns += ["tpxq", "tpyq", "tpzq"]
 
     logger.info("Merging particles and hits data...")
     cat_data = pd.concat(

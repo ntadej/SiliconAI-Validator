@@ -170,9 +170,10 @@ def simulate(
     if diagnostics:
         setup_style()
 
-        from siliconai_acts.plotting.diagnostics import plot_particles
+        from siliconai_acts.plotting.diagnostics import plot_hits, plot_particles
 
         plot_particles(config, ProductionStep.Simulation)
+        plot_hits(config)
 
 
 @application.command()

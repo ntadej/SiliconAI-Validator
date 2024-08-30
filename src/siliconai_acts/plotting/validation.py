@@ -31,6 +31,11 @@ def preprocess_input(file: Path, key: str) -> pd.DataFrame:
     data["lx"] = data["lxq"]
     data["ly"] = data["lyq"]
 
+    data["tpx"] = data["tpxq"]
+    data["tpy"] = data["tpyq"]
+    data["tpz"] = data["tpzq"]
+    data["tpt"] = np.sqrt(data["tpx"] ** 2 + data["tpy"] ** 2)
+
     from siliconai_acts.data.utils import local_to_global_vec
 
     global_data = local_to_global_vec(
@@ -67,7 +72,13 @@ def validate_hits(
         "lx",
         "ly",
     ]
-    columns = columns_position + columns_local_position
+    columns_momentum = [
+        "tpt",
+        "tpx",
+        "tpy",
+        "tpz",
+    ]
+    columns = columns_position + columns_local_position + columns_momentum
 
     labels_extra = [
         *config.labels,
@@ -87,7 +98,7 @@ def validate_hits(
                 "Primary hit",
                 "Hits",
                 labels_extra_primary,
-                legend=["Reference", "Generated"],
+                legend=["Geant4", "Neural network"],
             )
 
 

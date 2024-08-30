@@ -208,8 +208,8 @@ class ProcessConfiguration:
             case {
                 "type": str(),
                 "particle": str(),
-                "pt": tuple() | float() | int(),
-                "eta": tuple() | float(),
+                "pt": list() | float() | int(),
+                "eta": list() | float() | int(),
             }:
                 pass
             case _:
@@ -218,8 +218,20 @@ class ProcessConfiguration:
 
         self.type: EventType = EventType(config["type"])
         self.particle: ParticleType = ParticleType(config["particle"])
-        self.pt: tuple[float, float] | float = config["pt"]
-        self.eta: tuple[float, float] | float = config["eta"]
+        self.pt: tuple[float, float] | float = (
+            tuple(config["pt"])
+            if isinstance(config["pt"], list)
+            else float(config["pt"])
+        )
+        self.eta: tuple[float, float] | float = (
+            tuple(config["eta"])
+            if isinstance(config["eta"], list)
+            else float(config["eta"])
+        )
+
+        self.smearing: tuple[float, float, float] = tuple(
+            config.get("smearing", [0, 0, 50]),
+        )
 
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""
@@ -228,6 +240,7 @@ class ProcessConfiguration:
             "particle": self.particle.value,
             "pt": self.pt,
             "eta": self.eta,
+            "smearing": self.smearing,
         }
 
     def to_table(self) -> Table:
@@ -238,6 +251,7 @@ class ProcessConfiguration:
         table.add_row("particle:", self.particle.value)
         table.add_row("pt:", str(self.pt))
         table.add_row("eta:", str(self.eta))
+        table.add_row("smearing:", str(self.smearing))
 
         return table
 

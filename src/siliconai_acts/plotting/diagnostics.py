@@ -45,6 +45,10 @@ common_labels = {
     "ty": r"Hit $y$ [mm]",
     "tz": r"Hit $z$ [mm]",
     "tt": r"Hit $t$ [ns]",
+    "tpt": r"Hit particle transverse momentum $p_\mathrm{T}$ [GeV]",
+    "tpx": r"Hit particle momentum $p_x$ [GeV]",
+    "tpy": r"Hit particle momentum $p_y$ [GeV]",
+    "tpz": r"Hit particle momentum $p_z$ [GeV]",
     "lx": r"Hit surface $x$",
     "ly": r"Hit surface $y$",
     "deltae": r"Hit energy loss [GeV]",
@@ -78,7 +82,7 @@ common_logy = {
 common_binning = {
     # "particle_type": (31, -15.5, 15.5),
     "q": (3, -1.5, 1.5),
-    "number_of_hits": (20, 0, 20),
+    "number_of_hits": (30, 0, 30),
     "number_secondary_particles": (40, 0, 40),
     "vr": (50, -200, 200),
     "vx": (50, -200, 200),
@@ -380,6 +384,11 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
         )
         - data_frame["tpt"],
     )
+
+    data_frame["tpx"] += data_frame["deltapx"]
+    data_frame["tpy"] += data_frame["deltapy"]
+    data_frame["tpz"] += data_frame["deltapz"]
+    data_frame["tpt"] += data_frame["deltapt"]
 
     from siliconai_acts.data.utils import global_to_local_vec
 
