@@ -136,13 +136,12 @@ def export_hits(logger: Logger, config: Configuration) -> None:
     hits_data["index"] = hits_data["index"] + 1
     hits_data = hits_data.set_index(["event_id", "index"])
     hits_data = hits_data.sort_index()
-    hits_data["lxq"] = hits_data["lx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_data["lyq"] = hits_data["ly"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_columns += ["lxq", "lyq"]
-    hits_data["tpxq"] = hits_data["tpx"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_data["tpyq"] = hits_data["tpy"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_data["tpzq"] = hits_data["tpz"].round(2).map(lambda x: np.trunc(100 * x) / 100)
-    hits_columns += ["tpxq", "tpyq", "tpzq"]
+    quantized = ["lxq", "lyq", "tpxq", "tpyq", "tpzq"]
+    for col in quantized:
+        hits_data[col] = (
+            hits_data[col[:-1]].round(2).map(lambda x: np.trunc(100 * x) / 100)
+        )
+    hits_columns += quantized
 
     logger.info("Merging particles and hits data...")
     cat_data = pd.concat(

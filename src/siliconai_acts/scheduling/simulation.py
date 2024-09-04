@@ -40,6 +40,7 @@ def schedule_simulation(
     postselect_particles: Optional[ParticleSelectorConfig] = None,
     region_cuts: Optional[bool] = False,
     log_level: Optional[acts.logging.Level] = None,
+    disable_secondaries: Optional[bool] = False,
 ) -> None:
     """Schedule event simulation in the ACTS example framework."""
     region_list: list[RegionCreator] = []
@@ -82,6 +83,8 @@ def schedule_simulation(
             outputDirRoot=output_path,
             logLevel=log_level,
             regionList=region_list,
+            killSecondaries=disable_secondaries,
+            recordHitsOfSecondaries=not disable_secondaries,
         )
 
 
@@ -135,6 +138,13 @@ def run_simulation(
             rho=(0.0, 23.6 * u.mm),
             absZ=(0.0, 1.0 * u.m),
         ),
+        postselect_particles=ParticleSelectorConfig(
+            removeSecondaries=True,
+            removeNeutral=True,
+        )
+        if config.disable_secondaries
+        else None,
+        disable_secondaries=config.disable_secondaries,
         output_path=output_path,
         region_cuts=False,
     )

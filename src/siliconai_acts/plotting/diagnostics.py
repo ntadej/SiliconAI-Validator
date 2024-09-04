@@ -82,18 +82,22 @@ common_logy = {
 common_binning = {
     # "particle_type": (31, -15.5, 15.5),
     "q": (3, -1.5, 1.5),
-    "number_of_hits": (30, 0, 30),
+    "number_of_hits": (40, 0, 40),
     "number_secondary_particles": (40, 0, 40),
     "vr": (50, -200, 200),
     "vx": (50, -200, 200),
     "vy": (50, -200, 200),
     "vz": (50, -200, 200),
-    "tr": (40, 0, 1200),
-    "tx": (100, -1500, 1500),
-    "ty": (100, -1500, 1500),
-    "tz": (40, -600, 600),
+    "tr": (120, 0, 1200),
+    "tx": (300, -1500, 1500),
+    "ty": (300, -1500, 1500),
+    "tz": (120, -600, 600),
     "lx": (110, -55, 55),
     "ly": (110, -55, 55),
+    "tpt": (150, 0, 150),
+    "tpx": (200, -100, 100),
+    "tpy": (200, -100, 100),
+    "tpz": (200, -100, 100),
 }
 
 common_initial_barcode = 4503599644147712
@@ -283,7 +287,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
                 labels_extra,
             )
 
-        if step is ProductionStep.Simulation:
+        if step is ProductionStep.Simulation and len(particles_data_secondary):
             secondary_useful_base = particles_data_secondary[
                 (
                     particles_data_secondary["outcome"]
@@ -392,16 +396,20 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
 
     from siliconai_acts.data.utils import global_to_local_vec
 
-    local_data = global_to_local_vec(
-        data_frame["geometry_id"],
-        data_frame["tx"],
-        data_frame["ty"],
-        data_frame["tz"],
-    )
-    data_frame["lx"] = local_data[0]
-    data_frame["lx"] = data_frame["lx"].astype("float32")
-    data_frame["ly"] = local_data[1]
-    data_frame["ly"] = data_frame["ly"].astype("float32")
+    if len(data_frame):
+        local_data = global_to_local_vec(
+            data_frame["geometry_id"],
+            data_frame["tx"],
+            data_frame["ty"],
+            data_frame["tz"],
+        )
+        data_frame["lx"] = local_data[0]
+        data_frame["lx"] = data_frame["lx"].astype("float32")
+        data_frame["ly"] = local_data[1]
+        data_frame["ly"] = data_frame["ly"].astype("float32")
+    else:
+        data_frame["lx"] = data_frame["tx"]
+        data_frame["ly"] = data_frame["ty"]
 
     return data_frame
 
@@ -445,7 +453,7 @@ def plot_hits(config: Configuration) -> None:
 
     labels_extra = [
         *config.labels,
-        f"{config.events} events, simulated hits",
+        f"{config.events} events",
     ]
     labels_extra_primary = [
         *labels_extra,
@@ -518,12 +526,13 @@ def plot_hits(config: Configuration) -> None:
                 labels_extra_primary,
             )
 
-        for column in columns:
-            diagnostics_plot(
-                pdf,
-                hits_data_secondary[column],
-                column,
-                "Secondary hit",
-                "Hits",
-                labels_extra_secondary,
-            )
+        if len(hits_data_secondary):
+            for column in columns:
+                diagnostics_plot(
+                    pdf,
+                    hits_data_secondary[column],
+                    column,
+                    "Secondary hit",
+                    "Hits",
+                    labels_extra_secondary,
+                )

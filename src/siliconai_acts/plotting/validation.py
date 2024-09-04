@@ -82,7 +82,7 @@ def validate_hits(
 
     labels_extra = [
         *config.labels,
-        f"{config.events} events, simulated hits",
+        f"{config.events} events",
     ]
     labels_extra_primary = [
         *labels_extra,

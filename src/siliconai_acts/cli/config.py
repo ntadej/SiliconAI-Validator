@@ -268,7 +268,6 @@ class SimulationConfiguration:
         match config:
             case {
                 "type": str(),
-                "secondaries_min_pt": float(),
             }:
                 pass
             case _:
@@ -276,12 +275,14 @@ class SimulationConfiguration:
                 raise ValueError(error)
 
         self.type: SimulationType = SimulationType(config["type"])
-        self.secondaries_min_pt: float = config["secondaries_min_pt"]
+        self.secondaries_min_pt: float = config.get("secondaries_min_pt", 0)
+        self.disable_secondaries: bool = config.get("disable_secondaries", False)
 
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""
         return {
             "type": self.type.value,
+            "disable_secondaries": self.disable_secondaries,
             "secondaries_min_pt": self.secondaries_min_pt,
         }
 
@@ -290,6 +291,7 @@ class SimulationConfiguration:
         table = config_table()
 
         table.add_row("type:", self.type.value)
+        table.add_row("disable secondaries:", str(self.disable_secondaries))
         table.add_row("secondaries min pt:", str(self.secondaries_min_pt))
 
         return table

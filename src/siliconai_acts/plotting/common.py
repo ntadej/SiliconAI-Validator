@@ -15,6 +15,9 @@ if TYPE_CHECKING:
     from pandas import Series
 
 
+colors = ["red", "blue"]
+
+
 def setup_style() -> None:
     """Use ATLAS plotting style by default, but without labels."""
     hep.style.use(hep.style.ATLAS)
@@ -88,35 +91,64 @@ def plot_hist(
         rounded=False,
     )
 
-    fig, ax = plt.subplots(figsize=(6, 4))
-    for d, label in zip(data, legend or [column]):
+    fig, (ax_main, ax_ratio) = plt.subplots(
+        nrows=2,
+        sharex=True,
+        figsize=(6, 4),
+        height_ratios=[3, 1],
+    )
+    hist_main = None
+    bins_main = None
+    hist_list = []
+    for d, label, color in zip(data, legend or [column], colors[: len(data)]):
         hist, bins = np.histogram(d, binning)  # type: ignore
-        hep.histplot(hist, bins, ax=ax, yerr=True, label=label)
+        if hist_main is None:
+            hist_main = hist
+            bins_main = bins
+        else:
+            hist_list.append(hist)  # type: ignore
+        hep.histplot(hist, bins, ax=ax_main, yerr=True, label=label, color=color)
 
     for i, label in enumerate(labels_extra or []):
-        ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
+        ax_main.text(0.05, 0.9 - i * 0.075, label, transform=ax_main.transAxes)
 
-    ax.set_xlabel(label_x or column, labelpad=20)
-    ax.set_ylabel(label_y or "Entries")
+    ax_main.set_ylabel(label_y or "Entries")
+    ax_main.tick_params(labelbottom=False)
+    ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
+    ax_ratio.set_ylabel("Ratio", loc="center")
+
+    ax_ratio.set_ylim(0.8, 1.1999)
+
+    plt.subplots_adjust(hspace=0.05)
 
     if logx:
-        ax.set_xscale("log")
+        ax_main.set_xscale("log")
     if logy:
-        ax.set_yscale("log")
-        ax.set_ylim(
+        ax_main.set_yscale("log")
+        ax_main.set_ylim(
             None,
-            ax.get_ylim()[1] * (3 * len(labels_extra or [])),
+            ax_main.get_ylim()[1] * (3 * len(labels_extra or [])),
         )
     else:
-        ax.set_ylim(
-            ax.get_ylim()[0],
-            ax.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
+        ax_main.set_ylim(
+            ax_main.get_ylim()[0],
+            ax_main.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
         )
 
-    if len(data) > 1:
-        plt.legend()
+    ax_ratio.axhline(1.0, linewidth=0.7, color="black", linestyle="dashed", zorder=0)
 
-    return fig, ax
+    if hist_main is None:
+        raise RuntimeError
+
+    for hist, color in zip(hist_list, colors[1 : len(data)]):
+        ratio = np.divide(hist, hist_main, where=hist_main != 0)
+        ratio[hist_main == 0] = 1
+        hep.histplot(ratio, bins_main, ax=ax_ratio, yerr=False, color=color)
+
+    if len(data) > 1:
+        ax_main.legend()
+
+    return fig, ax_main
 
 
 def plot_scatter(
@@ -131,7 +163,7 @@ def plot_scatter(
         return None, None
 
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(data_x[0][:10000], data_y[0][:10000], s=0.1)
+    ax.scatter(data_x[0][:10000], data_y[0][:10000], s=0.1, color=colors[0])
 
     for i, label in enumerate(labels_extra or []):
         ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)
