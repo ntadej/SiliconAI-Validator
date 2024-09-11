@@ -177,7 +177,7 @@ def simulate(
 
 
 @application.command()
-def digitize(
+def reconstruct(
     config_file: Annotated[
         Path,
         typer.Option(
@@ -199,18 +199,18 @@ def digitize(
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
-    logger = setup_logger(global_config, "digitize")
+    logger = setup_logger(global_config, "reconstruct")
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
-    from siliconai_acts.scheduling.digitization import run_digitization
+    from siliconai_acts.scheduling.reconstruction import run_reconstruction
 
-    run_digitization(
+    run_reconstruction(
         logger,
         config.seed,
         config.events,
+        global_config.threads,
         config.output_path,
-        # global_config.threads,
     )
 
     if diagnostics:
