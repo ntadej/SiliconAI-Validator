@@ -187,6 +187,14 @@ def reconstruct(
             help="Task configuration file.",
         ),
     ],
+    hits_type: Annotated[
+        str,
+        typer.Option(
+            "-t",
+            "--type",
+            help="Input hits type.",
+        ),
+    ] = "original",
     diagnostics: Annotated[
         bool,
         typer.Option(
@@ -195,6 +203,29 @@ def reconstruct(
             help="Prepare diagnostics plots.",
         ),
     ] = False,
+    digi_only: Annotated[
+        bool,
+        typer.Option(
+            "--digi-only",
+            help="Run digitization only.",
+        ),
+    ] = False,
+    events: Annotated[
+        int,
+        typer.Option(
+            "-e",
+            "--events",
+            help="Number of events to run",
+        ),
+    ] = 0,
+    skip: Annotated[
+        int,
+        typer.Option(
+            "-s",
+            "--skip",
+            help="Number of events to skip",
+        ),
+    ] = 0,
 ) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
@@ -208,9 +239,12 @@ def reconstruct(
     run_reconstruction(
         logger,
         config.seed,
-        config.events,
+        events if events > 0 else config.events,
         global_config.threads,
         config.output_path,
+        skip if skip > 0 else 0,
+        hits_type,
+        digi_only,
     )
 
     if diagnostics:
@@ -241,6 +275,41 @@ def export(
     from siliconai_acts.data.export import export_hits
 
     export_hits(logger, config)
+
+
+@application.command("import")
+def import_data(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+    file: Annotated[
+        Path,
+        typer.Option(
+            "-f",
+            "--file",
+            envvar="SILICONAI_ACTS_FILE",
+            help="Output file to import.",
+        ),
+    ],
+) -> None:
+    """Import ML results."""
+    global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
+    logger = setup_logger(global_config, "import")
+
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
+    logger.info("Importing results")
+
+    from siliconai_acts.data.importing import import_results
+
+    import_results(logger, config, file)
 
 
 @application.command()
@@ -308,3 +377,31 @@ def validate(
     from siliconai_acts.plotting.validation import validate
 
     validate(config, file)
+
+
+@application.command()
+def validate_reco(
+    config_file: Annotated[
+        Path,
+        typer.Option(
+            "-c",
+            "--config",
+            envvar="SILICONAI_ACTS_CONFIG",
+            help="Task configuration file.",
+        ),
+    ],
+) -> None:
+    """Validate ML results."""
+    global_config = GlobalConfiguration.load(state)
+    config = Configuration(config_file, global_config)
+    logger = setup_logger(global_config, "validate_reco")
+
+    environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
+
+    logger.info("Validating reconstruction results")
+
+    setup_style()
+
+    from siliconai_acts.plotting.validation import validate_reconstruction
+
+    validate_reconstruction(config)

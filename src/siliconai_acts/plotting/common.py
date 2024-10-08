@@ -67,7 +67,7 @@ def log_binning(
     return edges
 
 
-def plot_hist(
+def plot_hist(  # noqa: C901 PLR0912
     data: list[list[float]] | list[Series[float]],
     column: str,
     nbins: int = 25,
@@ -83,6 +83,8 @@ def plot_hist(
     if not data:
         return None, None
 
+    ratio = len(data) > 1
+
     binning_function = log_binning if logx else linear_binning
     binning = binning_function(
         nbins,
@@ -91,12 +93,17 @@ def plot_hist(
         rounded=False,
     )
 
-    fig, (ax_main, ax_ratio) = plt.subplots(
-        nrows=2,
-        sharex=True,
-        figsize=(6, 4),
-        height_ratios=[3, 1],
-    )
+    if ratio:
+        fig, (ax_main, ax_ratio) = plt.subplots(
+            nrows=2,
+            sharex=True,
+            figsize=(6, 4),
+            height_ratios=[3, 1],
+        )
+    else:
+        fig, ax_main = plt.subplots(figsize=(6, 4))
+        ax_ratio = None
+
     hist_main = None
     bins_main = None
     hist_list = []
@@ -109,17 +116,119 @@ def plot_hist(
             hist_list.append(hist)  # type: ignore
         hep.histplot(hist, bins, ax=ax_main, yerr=True, label=label, color=color)
 
+    label_offset = 0.1 if ratio else 0.075
+
     for i, label in enumerate(labels_extra or []):
-        ax_main.text(0.05, 0.9 - i * 0.075, label, transform=ax_main.transAxes)
+        ax_main.text(0.05, 0.9 - i * label_offset, label, transform=ax_main.transAxes)
 
     ax_main.set_ylabel(label_y or "Entries")
-    ax_main.tick_params(labelbottom=False)
-    ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
-    ax_ratio.set_ylabel("Ratio", loc="center")
+    if ax_ratio:
+        ax_main.tick_params(labelbottom=False)
 
-    ax_ratio.set_ylim(0.8, 1.1999)
+        ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
+        ax_ratio.set_ylabel("Ratio", loc="center")
 
-    plt.subplots_adjust(hspace=0.05)
+        ax_ratio.set_ylim(0.8, 1.1999)
+
+        plt.subplots_adjust(hspace=0.05)
+    else:
+        ax_main.set_xlabel(label_x or column)  # , labelpad=20)
+
+    if logx:
+        ax_main.set_xscale("log")
+    if logy:
+        ax_main.set_yscale("log")
+        ax_main.set_ylim(
+            1 if "nhits" in column else None,
+            ax_main.get_ylim()[1] * (10 ** len(labels_extra or [])),
+        )
+    else:
+        ax_main.set_ylim(
+            ax_main.get_ylim()[0],
+            ax_main.get_ylim()[1] * (1 + label_offset * len(labels_extra or [])),
+        )
+
+    if ax_ratio:
+        ax_ratio.axhline(
+            1.0,
+            linewidth=0.7,
+            color="black",
+            linestyle="dashed",
+            zorder=0,
+        )
+
+    if hist_main is None:
+        raise RuntimeError
+
+    if ratio:
+        for hist, color in zip(hist_list, colors[1 : len(data)]):
+            ratio_hist = np.divide(hist, hist_main, where=hist_main != 0)
+            ratio_hist[hist_main == 0] = 1
+            hep.histplot(ratio_hist, bins_main, ax=ax_ratio, yerr=False, color=color)
+
+    if len(data) > 1:
+        ax_main.legend(loc=1, bbox_to_anchor=(0.975, 0.925))
+
+    return fig, ax_main
+
+
+def plot_errorbar(
+    x: list[float],
+    xerr: list[float],
+    y: list[list[float]],
+    yerr: list[list[float]],
+    legend: list[str],
+    label_x: str,
+    label_y: str,
+    logx: bool = False,
+    logy: bool = False,
+    labels_extra: list[str] | None = None,
+) -> tuple[Figure | None, Axes | None]:
+    """Plot a column from a dataframe."""
+    if not y:
+        return None, None
+
+    ratio = False  # len(data) > 1
+
+    if ratio:
+        fig, (ax_main, ax_ratio) = plt.subplots(
+            nrows=2,
+            sharex=True,
+            figsize=(6, 4),
+            height_ratios=[3, 1],
+        )
+    else:
+        fig, ax_main = plt.subplots(figsize=(6, 4))
+        ax_ratio = None
+
+    for yi, yerri, label, color in zip(y, yerr, legend, colors[: len(y)]):
+        plt.errorbar(
+            x,
+            yi,
+            xerr=xerr,
+            yerr=yerri,
+            linestyle="",
+            label=label,
+            color=color,
+        )
+
+    label_offset = 0.1 if ratio else 0.075
+
+    for i, label in enumerate(labels_extra or []):
+        ax_main.text(0.05, 0.9 - i * label_offset, label, transform=ax_main.transAxes)
+
+    ax_main.set_ylabel(label_y or "Entries")
+    if ax_ratio:
+        ax_main.tick_params(labelbottom=False)
+
+        ax_ratio.set_xlabel(label_x)
+        ax_ratio.set_ylabel("Ratio", loc="center")
+
+        ax_ratio.set_ylim(0.8, 1.1999)
+
+        plt.subplots_adjust(hspace=0.05)
+    else:
+        ax_main.set_xlabel(label_x)
 
     if logx:
         ax_main.set_xscale("log")
@@ -127,26 +236,27 @@ def plot_hist(
         ax_main.set_yscale("log")
         ax_main.set_ylim(
             None,
-            ax_main.get_ylim()[1] * (3 * len(labels_extra or [])),
+            ax_main.get_ylim()[1] * (10 ** len(labels_extra or [])),
         )
     else:
         ax_main.set_ylim(
-            ax_main.get_ylim()[0],
-            ax_main.get_ylim()[1] * (1 + 0.075 * len(labels_extra or [])),
+            0,  # ax_main.get_ylim()[0],
+            ax_main.get_ylim()[1] * (1 + 2 * label_offset * len(labels_extra or [])),
         )
 
-    ax_ratio.axhline(1.0, linewidth=0.7, color="black", linestyle="dashed", zorder=0)
+    if ax_ratio:
+        ax_ratio.axhline(
+            1.0,
+            linewidth=0.7,
+            color="black",
+            linestyle="dashed",
+            zorder=0,
+        )
 
-    if hist_main is None:
-        raise RuntimeError
+    # TODO: ratio
 
-    for hist, color in zip(hist_list, colors[1 : len(data)]):
-        ratio = np.divide(hist, hist_main, where=hist_main != 0)
-        ratio[hist_main == 0] = 1
-        hep.histplot(ratio, bins_main, ax=ax_ratio, yerr=False, color=color)
-
-    if len(data) > 1:
-        ax_main.legend()
+    if len(y) > 1:
+        ax_main.legend(loc=1, bbox_to_anchor=(0.975, 0.925))
 
     return fig, ax_main
 

@@ -12,6 +12,7 @@ import uproot
 from particle.pdgid import literals as particle_literals
 
 from siliconai_acts.common.enums import ProductionStep, SimulationParticleOutcome
+from siliconai_acts.data.utils import common_initial_barcode
 from siliconai_acts.plotting.common import plot_hist, plot_scatter
 from siliconai_acts.plotting.utils import PDFDocument
 
@@ -56,6 +57,8 @@ common_labels = {
     "deltapx": r"Hit momentum change $\Delta p_x$ [GeV]",
     "deltapy": r"Hit momentum change $\Delta p_y$ [GeV]",
     "deltapz": r"Hit momentum change $\Delta p_z$ [GeV]",
+    "nhits": r"Number of hits",
+    "nhits_diff": r"Difference in number of hits",
 }
 
 common_scales = {
@@ -77,6 +80,8 @@ common_logy = {
     "deltapx": True,
     "deltapy": True,
     "deltapz": True,
+    "nhits": True,
+    "nhits_diff": True,
 }
 
 common_binning = {
@@ -100,7 +105,6 @@ common_binning = {
     "tpz": (200, -100, 100),
 }
 
-common_initial_barcode = 4503599644147712
 pixel_boundary_r = 200
 
 

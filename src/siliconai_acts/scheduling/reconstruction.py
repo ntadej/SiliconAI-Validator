@@ -105,17 +105,24 @@ def run_reconstruction(
     events: int,
     threads: int,
     output_path: Path,
+    skip: int = 0,
+    suffix: str = "original",
+    digi_only: bool = False,
 ) -> None:
     """Run event digitization."""
     logger.info("Running event digitization")
 
     rnd = acts.examples.RandomNumbers(seed=seed)
 
+    input_file = "hits.root" if suffix == "original" else f"hits_{suffix}.root"
+    output_path_reco = output_path / suffix
+
     sequencer = acts.examples.Sequencer(
         events=events,
+        skip=skip,
         numThreads=threads,
         trackFpes=False,
-        outputDir=output_path,
+        outputDir=output_path_reco,
         outputTimingFile="timing.recon.csv",
     )
 
@@ -135,7 +142,7 @@ def run_reconstruction(
         acts.examples.RootSimHitReader(
             level=acts.logging.WARNING,
             outputSimHits="simhits",
-            filePath=output_path / "hits.root",
+            filePath=output_path / input_file,
         ),
     )
 
@@ -154,16 +161,17 @@ def run_reconstruction(
         odd_tracking_geometry,
         odd_field,
         odd_digi_config,
-        output_path,
+        output_path_reco,
     )
 
-    schedule_reconstruction(
-        sequencer,
-        rnd,
-        odd_tracking_geometry,
-        odd_field,
-        odd_seeding_config,
-        output_path,
-    )
+    if not digi_only:
+        schedule_reconstruction(
+            sequencer,
+            rnd,
+            odd_tracking_geometry,
+            odd_field,
+            odd_seeding_config,
+            output_path_reco,
+        )
 
     sequencer.run()

@@ -41,3 +41,5 @@ def local_to_global(
 
 global_to_local_vec = np.vectorize(global_to_local)
 local_to_global_vec = np.vectorize(local_to_global)
+
+common_initial_barcode = 4503599644147712
