@@ -78,6 +78,7 @@ def plot_hist(  # noqa: C901 PLR0912
     label_y: str | None = None,
     labels_extra: list[str] | None = None,
     legend: list[str] | None = None,
+    errors: bool = True,
 ) -> tuple[Figure | None, Axes | None]:
     """Plot a column from a dataframe."""
     if not data:
@@ -114,7 +115,7 @@ def plot_hist(  # noqa: C901 PLR0912
             bins_main = bins
         else:
             hist_list.append(hist)  # type: ignore
-        hep.histplot(hist, bins, ax=ax_main, yerr=True, label=label, color=color)
+        hep.histplot(hist, bins, ax=ax_main, yerr=errors, label=label, color=color)
 
     label_offset = 0.1 if ratio else 0.075
 
@@ -128,7 +129,7 @@ def plot_hist(  # noqa: C901 PLR0912
         ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
         ax_ratio.set_ylabel("Ratio", loc="center")
 
-        ax_ratio.set_ylim(0.8, 1.1999)
+        ax_ratio.set_ylim(0.9, 1.0999)
 
         plt.subplots_adjust(hspace=0.05)
     else:
@@ -224,7 +225,7 @@ def plot_errorbar(
         ax_ratio.set_xlabel(label_x)
         ax_ratio.set_ylabel("Ratio", loc="center")
 
-        ax_ratio.set_ylim(0.8, 1.1999)
+        ax_ratio.set_ylim(0.9, 1.0999)
 
         plt.subplots_adjust(hspace=0.05)
     else:
@@ -273,7 +274,8 @@ def plot_scatter(
         return None, None
 
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(data_x[0][:10000], data_y[0][:10000], s=0.1, color=colors[0])
+    for i in range(len(data_x)):
+        ax.scatter(data_x[i][:10000], data_y[i][:10000], s=0.1, color=colors[i])
 
     for i, label in enumerate(labels_extra or []):
         ax.text(0.05, 0.9 - i * 0.075, label, transform=ax.transAxes)

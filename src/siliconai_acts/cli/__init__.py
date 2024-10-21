@@ -362,6 +362,14 @@ def validate(
             help="Output file to validate.",
         ),
     ],
+    event: Annotated[
+        int,
+        typer.Option(
+            "-e",
+            "--event",
+            help="Specific event to validate.",
+        ),
+    ] = -1,
 ) -> None:
     """Validate ML results."""
     global_config = GlobalConfiguration.load(state)
@@ -376,7 +384,7 @@ def validate(
 
     from siliconai_acts.plotting.validation import validate
 
-    validate(config, file)
+    validate(config, file, event)
 
 
 @application.command()

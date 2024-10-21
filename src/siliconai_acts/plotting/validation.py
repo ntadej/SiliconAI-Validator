@@ -10,7 +10,10 @@ import uproot
 
 from siliconai_acts.data.export import geometry_id_end, geometry_id_start
 from siliconai_acts.plotting.common import plot_errorbar
-from siliconai_acts.plotting.diagnostics import diagnostics_plot
+from siliconai_acts.plotting.diagnostics import (
+    diagnostics_plot,
+    diagnostics_scatter_plot,
+)
 from siliconai_acts.plotting.utils import PDFDocument
 
 if TYPE_CHECKING:
@@ -61,6 +64,7 @@ def validate_hits(
     file_suffix: str,
     reference_data: pd.DataFrame,
     generated_data: pd.DataFrame,
+    event: int = -1,
 ) -> None:
     """Validate and plot hits."""
     columns_position = [
@@ -81,15 +85,16 @@ def validate_hits(
         "tpz",
     ]
     columns = columns_position + columns_local_position + columns_momentum
+    size = len(reference_data.groupby("event_id").size())
 
-    labels_extra = [
-        *config.labels,
-        f"{config.events} events",
-    ]
+    labels_extra = [*config.labels, f"{size} events"]
     labels_extra_primary = [
         *labels_extra,
         "primary particles only",
     ]
+
+    if event >= 0:
+        file_suffix = f"{file_suffix}_{event}"
 
     with PDFDocument(config.output_path / f"validation_{file_suffix}.pdf") as pdf:  # type: ignore
         if not isinstance(reference_data.index, pd.MultiIndex) or not isinstance(
@@ -98,6 +103,10 @@ def validate_hits(
         ):
             error = "Index must be a MultiIndex"
             raise TypeError(error)
+
+        if event >= 0:
+            reference_data = reference_data.loc[[event]]
+            generated_data = generated_data.loc[[event]]
 
         reference_hits = (
             reference_data.reset_index().groupby("event_id").count()["index"]
@@ -108,6 +117,29 @@ def validate_hits(
 
         diff_hits = abs(reference_hits - generated_hits)
 
+        if event >= 0:
+            diagnostics_scatter_plot(
+                pdf,
+                [reference_data["tx"], generated_data["tx"]],
+                [reference_data["ty"], generated_data["ty"]],
+                "tx",
+                "ty",
+                "Primary hit",
+                "Primary hit",
+                labels_extra_primary,
+            )
+
+            diagnostics_scatter_plot(
+                pdf,
+                [reference_data["tz"], generated_data["tz"]],
+                [reference_data["tr"], generated_data["tr"]],
+                "tz",
+                "tr",
+                "Primary hit",
+                "Primary hit",
+                labels_extra_primary,
+            )
+
         diagnostics_plot(
             pdf,
             [reference_hits, generated_hits],
@@ -116,6 +148,7 @@ def validate_hits(
             "Hits",
             labels_extra_primary,
             legend=["Geant4", "Neural network"],
+            errors=event < 0,
         )
 
         diagnostics_plot(
@@ -125,6 +158,7 @@ def validate_hits(
             "Primary hit",
             "Hits",
             labels_extra_primary,
+            errors=event < 0,
         )
 
         for column in columns:
@@ -136,15 +170,16 @@ def validate_hits(
                 "Hits",
                 labels_extra_primary,
                 legend=["Geant4", "Neural network"],
+                errors=event < 0,
             )
 
 
-def validate(config: Configuration, file: Path) -> None:
+def validate(config: Configuration, file: Path, event: int = -1) -> None:
     """Validate results."""
     reference = preprocess_input(file, "reference_data")
     generated = preprocess_input(file, "generated_data")
 
-    validate_hits(config, file.stem, reference, generated)
+    validate_hits(config, file.stem, reference, generated, event)
 
 
 def validate_reconstruction(config: Configuration) -> None:
@@ -160,63 +195,67 @@ def validate_reconstruction(config: Configuration) -> None:
     with (
         uproot.open(reference_file) as file_ref,
         uproot.open(generated_file) as file_gen,
+        PDFDocument(config.output_path / "validation_reco.pdf") as pdf,  # type: ignore
     ):
-        reference_eff_passed = (
-            file_ref["trackeff_vs_pT"].member("fPassedHistogram").to_numpy()
-        )
-        reference_eff_total = (
-            file_ref["trackeff_vs_pT"].member("fTotalHistogram").to_numpy()
-        )
-        generated_eff_passed = (
-            file_gen["trackeff_vs_pT"].member("fPassedHistogram").to_numpy()
-        )
-        generated_eff_total = (
-            file_gen["trackeff_vs_pT"].member("fTotalHistogram").to_numpy()
-        )
+        for variable, label in [
+            ("trackeff_vs_pT", "Track momentum [GeV]"),
+            ("trackeff_vs_z0", "Track z_0 [mm]"),
+        ]:
+            reference_eff_passed = (
+                file_ref[variable].member("fPassedHistogram").to_numpy()
+            )
+            reference_eff_total = (
+                file_ref[variable].member("fTotalHistogram").to_numpy()
+            )
+            generated_eff_passed = (
+                file_gen[variable].member("fPassedHistogram").to_numpy()
+            )
+            generated_eff_total = (
+                file_gen[variable].member("fTotalHistogram").to_numpy()
+            )
 
-        indices = reference_eff_total[0] > 0
-        indices_bins = np.append(reference_eff_total[0] > 0, False)
-        indices_bins[np.nonzero(indices_bins)[0][-1] + 1] = True
+            indices = reference_eff_total[0] > 0
+            indices_bins = np.append(reference_eff_total[0] > 0, False)
+            indices_bins[np.nonzero(indices_bins)[0][-1] + 1] = True
 
-        reference_passed = reference_eff_passed[0][indices]
-        reference_total = reference_eff_total[0][indices]
-        generated_passed = generated_eff_passed[0][indices]
-        generated_total = generated_eff_total[0][indices]
+            reference_passed = reference_eff_passed[0][indices]
+            reference_total = reference_eff_total[0][indices]
+            generated_passed = generated_eff_passed[0][indices]
+            generated_total = generated_eff_total[0][indices]
 
-        bins = reference_eff_total[1][indices_bins]
-        bin_centers = bins[1:] - (bins[1] - bins[0]) / 2
-        bin_errors = len(reference_total) * [(bins[1] - bins[0]) / 2]
+            bins = reference_eff_total[1][indices_bins]
+            bin_centers = bins[1:] - (bins[1] - bins[0]) / 2
+            bin_errors = len(reference_total) * [(bins[1] - bins[0]) / 2]
 
-        reference_efficiency = reference_passed / reference_total
-        reference_err = (
-            np.sqrt(reference_passed) / reference_total * reference_efficiency
-        )
-        generated_efficiency = generated_passed / generated_total
-        generated_err = (
-            np.sqrt(generated_passed) / generated_total * generated_efficiency
-        )
+            reference_efficiency = reference_passed / reference_total
+            reference_err = (
+                np.sqrt(reference_passed) / reference_total * reference_efficiency
+            )
+            generated_efficiency = generated_passed / generated_total
+            generated_err = (
+                np.sqrt(generated_passed) / generated_total * generated_efficiency
+            )
 
-    with PDFDocument(config.output_path / "validation_reco.pdf") as pdf:  # type: ignore
-        labels_extra = [
-            *config.labels,
-            f"{config.events} events",
-        ]
-        labels_extra_primary = [
-            *labels_extra,
-            "primary particles only",
-        ]
+            labels_extra = [
+                *config.labels,
+                f"{config.events} events",
+            ]
+            labels_extra_primary = [
+                *labels_extra,
+                "primary particles only",
+            ]
 
-        fig, ax = plot_errorbar(
-            bin_centers,
-            bin_errors,
-            [reference_efficiency, generated_efficiency],
-            [reference_err, generated_err],
-            legend=["Geant4", "Neural network"],
-            label_x="Track momentum [GeV]",
-            label_y="Tracking efficiency",
-            labels_extra=labels_extra_primary,
-        )
-        if fig:
-            fig.set_size_inches(6, 5)
-            pdf.save(fig)
-            # plt.close(fig)
+            fig, ax = plot_errorbar(
+                bin_centers,
+                bin_errors,
+                [reference_efficiency, generated_efficiency],
+                [reference_err, generated_err],
+                legend=["Geant4", "Neural network"],
+                label_x=label,
+                label_y="Seeding efficiency",
+                labels_extra=labels_extra_primary,
+            )
+            if fig:
+                fig.set_size_inches(6, 5)
+                pdf.save(fig)
+                # plt.close(fig)

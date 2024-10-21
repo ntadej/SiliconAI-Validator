@@ -123,6 +123,7 @@ def diagnostics_plot(
     logx: Optional[bool] = None,
     logy: Optional[bool] = None,
     legend: Optional[list[str]] = None,
+    errors: bool = True,
 ) -> bool:
     """Diagnostics plot helper function."""
     label_x = common_labels.get(column)
@@ -157,6 +158,7 @@ def diagnostics_plot(
         logx=logx,
         logy=logy,
         legend=legend,
+        errors=errors,
     )
     if not fig:
         return False
@@ -168,8 +170,8 @@ def diagnostics_plot(
 
 def diagnostics_scatter_plot(
     pdf: PDFDocument,
-    values_x: pd.Series[float] | np.typing.ArrayLike,
-    values_y: pd.Series[float] | np.typing.ArrayLike,
+    values_x: list[pd.Series[float] | np.typing.ArrayLike],
+    values_y: list[pd.Series[float] | np.typing.ArrayLike],
     column_x: str,
     column_y: str,
     label_x_base: str,
@@ -188,8 +190,8 @@ def diagnostics_scatter_plot(
         label_y = label_y.replace("Hit", label_y_base)
 
     fig, ax = plot_scatter(
-        [values_x / common_scales.get(column_x, 1)],
-        [values_y / common_scales.get(column_y, 1)],
+        [vx / common_scales.get(column_x, 1) for vx in values_x],
+        [vy / common_scales.get(column_y, 1) for vy in values_y],
         label_x=label_x,
         label_y=label_y,
         labels_extra=labels_extra,
@@ -499,8 +501,8 @@ def plot_hits(config: Configuration) -> None:
         ):
             diagnostics_scatter_plot(
                 pdf,
-                data["tx"],
-                data["ty"],
+                [data["tx"]],
+                [data["ty"]],
                 "tx",
                 "ty",
                 label_base,
@@ -511,8 +513,8 @@ def plot_hits(config: Configuration) -> None:
 
             diagnostics_scatter_plot(
                 pdf,
-                data["tz"],
-                data["tr"],
+                [data["tz"]],
+                [data["tr"]],
                 "tz",
                 "tr",
                 label_base,
