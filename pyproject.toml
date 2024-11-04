@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
     "matplotlib == 3.9.*",
     "mplhep == 0.3.*",
-    "numpy == 1.26.*",
+    "numpy == 2.1.*",
     "pandas == 2.2.*",
     "particle == 0.25.*",
     "scikit-hep-testdata == 0.4.*",
@@ -27,7 +27,7 @@ dependencies = [
     "tables == 3.10.*",
     "tomli-w",
     "typer[all] == 0.9.*",
-    "uproot == 5.3.*",
+    "uproot == 5.4.*",
 ]
 
 [project.scripts]
@@ -38,14 +38,14 @@ dev = [
     "coverage[toml]",
     "ipykernel",
     "ipympl",
-    "mypy == 1.11.*",
+    "mypy == 1.13.*",
     "pandas-stubs == 2.2.*",
-    "pre-commit-hooks == 4.6.*",
+    "pre-commit-hooks == 5.0.*",
     "pre-commit",
     "pytest >= 7.0",
     "pytest-cov",
     "pytest-forked",
-    "ruff == 0.6.2",
+    "ruff == 0.7.2",
 ]
 
 [tool.pdm.scripts]

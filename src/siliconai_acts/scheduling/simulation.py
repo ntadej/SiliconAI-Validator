@@ -78,7 +78,7 @@ def schedule_simulation(
             inputParticles=input_collection,
             preSelectParticles=preselect_particles,
             postSelectParticles=postselect_particles,
-            killVolume=tracking_geometry.worldVolume,
+            killVolume=tracking_geometry.highestTrackingVolume,
             killAfterTime=25 * u.ns,
             outputDirRoot=output_path,
             logLevel=log_level,
