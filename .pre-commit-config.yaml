@@ -5,8 +5,13 @@ repos:
       - id: mypy
         args: []
         additional_dependencies:
-          - pandas
+          - matplotlib
+          - pandas-stubs
+          - particle
+          - pytest
+          - pytest-forked
           - rich
+          - scikit-hep-testdata
           - typer
           - tomli_w
   - repo: https://github.com/astral-sh/ruff-pre-commit

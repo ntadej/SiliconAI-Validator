@@ -69,7 +69,7 @@ Inside the virtual environment do the following setup each time:
 ```bash
 source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
-export PYTHONPATH="${SILICONAI_ACTS_PATH}/.venv/lib/python3.9/site-packages:${PYTHONPATH}"
+export PYTHONPATH="${SILICONAI_ACTS_PATH}/.venv/lib/python3.11/site-packages:${PYTHONPATH}"
 ```
 
 ### Full setup

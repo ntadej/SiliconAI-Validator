@@ -1,6 +1,6 @@
 # A script to setup LCG view for ACTS usage
 
-lsetup "views LCG_106 x86_64-el9-gcc13-opt"
+lsetup "views LCG_106a x86_64-el9-gcc13-opt"
 
 # unset PYTHONPATH and PYTHONHOME to avoid conflict with LCG python packages
 export LCG_PYTHONPATH="${PYTHONPATH}"

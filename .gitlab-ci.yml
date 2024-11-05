@@ -1,0 +1,75 @@
+# GitLab Continuous Integration configuration for the repository.
+
+stages:
+  - test
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_DEPTH: 1
+
+# Run pre-commit hooks
+pre-commit:
+  stage: test
+  image: python:3.11
+  script:
+    - export PATH=/root/.local/bin:$PATH
+    - pip install pipx
+    - pipx install pre-commit
+    - pre-commit run --all-files
+
+# Run code quality checks
+# code_quality:
+#   stage: test
+#   tags:
+#     - docker-privileged-xl
+#   artifacts:
+#     paths: [gl-code-quality-report.json]
+
+# include:
+#   - template: Code-Quality.gitlab-ci.yml
+
+# Run tests with coverage
+pytest:
+  stage: test
+  coverage: '/COVERAGE: (\d+\.\d+\%)/'
+  tags:
+    - cvmfs
+  image: gitlab-registry.cern.ch/tadej/os-containers/alma9-batch
+  cache:
+    - key:
+        files:
+          - pdm.lock
+      paths:
+        - .venv
+    - key:
+        files:
+          - dependencies/hashes
+      paths:
+        - dependencies/build
+        - dependencies/install
+  before_script:
+    - export ATLAS_LOCAL_ROOT_BASE="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase"
+    - set +e
+    - source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
+    - export PATH=/root/.local/bin:$PATH
+    - setupATLAS -t devatlr
+    - source "./scripts/setup_LCG_view.sh"
+    - set -e
+    - source "./scripts/setup_pdm.sh"
+    - source "./scripts/setup_venv.sh"
+    - source "./scripts/setup_acts.sh"
+  script:
+    - pytest -W error --junitxml=report.xml
+    - export COVERAGE=$(coverage report --format=total)
+    - "echo COVERAGE: ${COVERAGE}%"
+  artifacts:
+    paths:
+      - coverage.xml
+      - coverage/*
+    expire_in: 1 day
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    when: always
