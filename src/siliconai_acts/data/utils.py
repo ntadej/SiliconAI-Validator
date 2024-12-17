@@ -1,5 +1,7 @@
 """Data utilities."""
 
+from __future__ import annotations
+
 import numpy as np
 
 from siliconai_acts.common.detector import (

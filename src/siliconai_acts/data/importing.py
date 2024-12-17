@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from siliconai_acts.cli.config import Configuration
-    from siliconai_acts.cli.logging import Logger
+    from siliconai_acts.cli.logger import Logger
 
 
 def preprocess_input(file: Path, key: str) -> pd.DataFrame:

@@ -1,5 +1,7 @@
 """SiliconAI ACTS CLI."""
 
+from __future__ import annotations
+
 from os import environ
 from pathlib import Path
 from sys import argv
@@ -14,7 +16,7 @@ from siliconai_acts.cli.config import (
     TyperState,
     config_missing,
 )
-from siliconai_acts.cli.logging import setup_logger
+from siliconai_acts.cli.logger import setup_logger
 from siliconai_acts.common.enums import ProductionStep
 from siliconai_acts.plotting.common import setup_style
 
@@ -242,7 +244,7 @@ def reconstruct(
         events if events > 0 else config.events,
         global_config.threads,
         config.output_path,
-        skip if skip > 0 else 0,
+        max(skip, 0),
         hits_type,
         digi_only,
     )

@@ -108,7 +108,12 @@ def plot_hist(  # noqa: C901 PLR0912
     hist_main = None
     bins_main = None
     hist_list = []
-    for d, label, color in zip(data, legend or [column], colors[: len(data)]):
+    for d, label, color in zip(
+        data,
+        legend or [column],
+        colors[: len(data)],
+        strict=True,
+    ):
         hist, bins = np.histogram(d, binning)  # type: ignore
         if hist_main is None:
             hist_main = hist
@@ -162,7 +167,7 @@ def plot_hist(  # noqa: C901 PLR0912
         raise RuntimeError
 
     if ratio:
-        for hist, color in zip(hist_list, colors[1 : len(data)]):
+        for hist, color in zip(hist_list, colors[1 : len(data)], strict=True):
             ratio_hist = np.divide(hist, hist_main, where=hist_main != 0)
             ratio_hist[hist_main == 0] = 1
             hep.histplot(ratio_hist, bins_main, ax=ax_ratio, yerr=False, color=color)
@@ -202,7 +207,7 @@ def plot_errorbar(
         fig, ax_main = plt.subplots(figsize=(6, 4))
         ax_ratio = None
 
-    for yi, yerri, label, color in zip(y, yerr, legend, colors[: len(y)]):
+    for yi, yerri, label, color in zip(y, yerr, legend, colors[: len(y)], strict=True):
         plt.errorbar(
             x,
             yi,

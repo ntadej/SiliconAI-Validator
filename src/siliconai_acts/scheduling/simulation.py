@@ -5,7 +5,7 @@ from __future__ import annotations
 import subprocess
 from functools import partial
 from multiprocessing import Pool
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import acts
 from acts.examples.geant4 import RegionCreator
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from siliconai_acts.cli.config import SimulationConfiguration
-    from siliconai_acts.cli.logging import Logger
+    from siliconai_acts.cli.logger import Logger
 
 u = acts.UnitConstants
 
@@ -35,12 +35,12 @@ def schedule_simulation(
     tracking_geometry: acts.TrackingGeometry,
     field: acts.MagneticFieldProvider,
     input_collection: str = "particles_input",
-    output_path: Optional[Path] = None,
-    preselect_particles: Optional[ParticleSelectorConfig] = None,
-    postselect_particles: Optional[ParticleSelectorConfig] = None,
-    region_cuts: Optional[bool] = False,
-    log_level: Optional[acts.logging.Level] = None,
-    disable_secondaries: Optional[bool] = False,
+    output_path: Path | None = None,
+    preselect_particles: ParticleSelectorConfig | None = None,
+    postselect_particles: ParticleSelectorConfig | None = None,
+    region_cuts: bool | None = False,
+    log_level: acts.logging.Level | None = None,
+    disable_secondaries: bool | None = False,
 ) -> None:
     """Schedule event simulation in the ACTS example framework."""
     region_list: list[RegionCreator] = []
@@ -203,7 +203,7 @@ def run_simulation_multiprocess(
                 config=config,
                 output_path=output_path,
             ),
-            zip(ids, begins, ends),
+            zip(ids, begins, ends, strict=False),
         )
 
     # merge outputs
@@ -214,8 +214,8 @@ def run_simulation_multiprocess(
     hits_file_out = str(output_path / "hits.root")
     particles_file_out = str(output_path / "particles_simulation.root")
 
-    subprocess.run(["hadd", "-f", hits_file_out, *hits_files], check=True)
-    subprocess.run(["hadd", "-f", particles_file_out, *particles_files], check=True)
+    subprocess.run(["hadd", "-f", hits_file_out, *hits_files], check=True)  # noqa: S603 S607
+    subprocess.run(["hadd", "-f", particles_file_out, *particles_files], check=True)  # noqa: S603 S607
 
     proc_folders = output_path.glob("proc_*")
     for folder in proc_folders:

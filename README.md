@@ -16,22 +16,15 @@ first before setting up any other tool or dependency.
 
 ### Python project management
 
-The Python project currently uses
-[PDM](https://pdm-project.org). To install PDM, run the convenience script
-
-```bash
-source ./scripts/setup_pdm.sh
-```
-
-This will install PDM in the parent directory of this project and add it
-to the `PATH`. For more installation options, see the PDM documentation.
+The Python project uses [uv](https://docs.astral.sh/uv/).
+It should be installed in the system and available in the `PATH`.
 
 To make the virtual environment and install the required packages,
 run the following command:
 
 ```bash
 python -m venv .venv
-pdm install
+uv sync
 ```
 
 Due to usage of external Python code the virtual environment should be entered.

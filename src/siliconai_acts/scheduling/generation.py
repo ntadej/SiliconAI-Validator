@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import acts
 from acts.examples.simulation import (
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from siliconai_acts.cli.config import ProcessConfiguration
-    from siliconai_acts.cli.logging import Logger
+    from siliconai_acts.cli.logger import Logger
 
 u = acts.UnitConstants
 
@@ -28,7 +28,7 @@ def schedule_event_generation(
     sequencer: acts.examples.Sequencer,
     rnd: acts.examples.RandomNumbers,
     config: ProcessConfiguration,
-    output_dir: Optional[Path] = None,
+    output_dir: Path | None = None,
 ) -> None:
     """Schedule event generation in the ACTS example framework."""
     vertex_generator = acts.examples.GaussianVertexGenerator(

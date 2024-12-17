@@ -1,4 +1,4 @@
-# A script to setup PDM for usage and installs it if needed
+# A script to setup Python for ACTS/SiliconAI usage
 
 # Bash location
 SETUP_LOCATION=${BASH_SOURCE[0]}
@@ -16,7 +16,7 @@ fi
 
 pushd "${SILICONAI_ACTS_PATH}" > /dev/null
 
-pdm install
+uv sync
 source .venv/bin/activate
 
 popd > /dev/null

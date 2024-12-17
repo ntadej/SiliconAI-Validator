@@ -6,15 +6,20 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_SUBMODULE_DEPTH: 1
+  UV_VERSION: 0.5
+  UV_CACHE_DIR: .uv-cache
+  PYTHON_VERSION: 3.11
+  BASE_LAYER: bookworm-slim
 
 # Run pre-commit hooks
 pre-commit:
   stage: test
-  image: python:3.11
-  script:
+  image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
+  before_script:
     - export PATH=/root/.local/bin:$PATH
-    - pip install pipx
-    - pipx install pre-commit
+    - apt-get update && apt-get install git -y
+  script:
+    - uv tool install pre-commit
     - pre-commit run --all-files
 
 # Run code quality checks
@@ -38,9 +43,9 @@ pytest:
   cache:
     - key:
         files:
-          - pdm.lock
+          - uv.lock
       paths:
-        - .venv
+        - $UV_CACHE_DIR
     - key:
         files:
           - dependencies/hashes
@@ -48,14 +53,14 @@ pytest:
         - dependencies/build
         - dependencies/install
   before_script:
+    - export PATH=/home/atlas/.local/bin:$PATH
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export ATLAS_LOCAL_ROOT_BASE="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase"
     - set +e
     - source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
-    - export PATH=/root/.local/bin:$PATH
     - setupATLAS -t devatlr
     - source "./scripts/setup_LCG_view.sh"
     - set -e
-    - source "./scripts/setup_pdm.sh"
     - source "./scripts/setup_venv.sh"
     - source "./scripts/setup_acts.sh"
   script:

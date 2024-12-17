@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import acts
 import acts.examples
@@ -11,7 +11,7 @@ from acts.examples.simulation import addDigitization
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.logging import Logger
+    from siliconai_acts.cli.logger import Logger
 
 
 def schedule_digitization(
@@ -20,8 +20,8 @@ def schedule_digitization(
     tracking_geometry: acts.TrackingGeometry,
     field: acts.MagneticFieldProvider,
     digitization_config: Path,
-    output_path: Optional[Path] = None,
-    log_level: Optional[acts.logging.Level] = None,
+    output_path: Path | None = None,
+    log_level: acts.logging.Level | None = None,
 ) -> None:
     """Schedule event digitization in the ACTS example framework."""
     addDigitization(
@@ -90,8 +90,8 @@ def get_coordinates_converter(
 ) -> acts.examples.DigitizationCoordinatesConverter:
     """Initialize and return digitization coordinates converter."""
     # Digitization
-    config = acts.examples.DigitizationConfig(
-        acts.examples.readDigiConfigFromJson(
+    config = acts.examples.DigitizationAlgorithm.Config(
+        digitizationConfigs=acts.examples.readDigiConfigFromJson(
             str(digitization_config),
         ),
         surfaceByIdentifier=tracking_geometry.geoIdSurfaceMap(),

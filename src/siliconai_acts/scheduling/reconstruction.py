@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import acts
 import acts.examples
@@ -20,7 +20,7 @@ from siliconai_acts.scheduling.digitization import schedule_digitization
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.logging import Logger
+    from siliconai_acts.cli.logger import Logger
 
 
 u = acts.UnitConstants
@@ -32,8 +32,8 @@ def schedule_reconstruction(
     tracking_geometry: acts.TrackingGeometry,
     field: acts.MagneticFieldProvider,
     seeding_config: Path,
-    output_path: Optional[Path] = None,
-    log_level: Optional[acts.logging.Level] = None,
+    output_path: Path | None = None,
+    log_level: acts.logging.Level | None = None,
 ) -> None:
     """Schedule event reconstruction in the ACTS example framework."""
     initial_sigmas = [

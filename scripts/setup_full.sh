@@ -10,6 +10,5 @@ SETUP_SCRIPT_LOCATION=$(cd "$(dirname "${SETUP_LOCATION}")" && pwd)
 
 setupATLAS -t devatlr
 source "${SETUP_SCRIPT_LOCATION}/setup_LCG_view.sh"
-source "${SETUP_SCRIPT_LOCATION}/setup_pdm.sh"
 source "${SETUP_SCRIPT_LOCATION}/setup_venv.sh"
 source "${SETUP_SCRIPT_LOCATION}/setup_acts.sh"

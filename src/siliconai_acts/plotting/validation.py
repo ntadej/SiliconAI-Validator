@@ -96,7 +96,7 @@ def validate_hits(
     if event >= 0:
         file_suffix = f"{file_suffix}_{event}"
 
-    with PDFDocument(config.output_path / f"validation_{file_suffix}.pdf") as pdf:  # type: ignore
+    with PDFDocument(config.output_path / f"validation_{file_suffix}.pdf") as pdf:
         if not isinstance(reference_data.index, pd.MultiIndex) or not isinstance(
             generated_data.index,
             pd.MultiIndex,
@@ -195,7 +195,7 @@ def validate_reconstruction(config: Configuration) -> None:
     with (
         uproot.open(reference_file) as file_ref,
         uproot.open(generated_file) as file_gen,
-        PDFDocument(config.output_path / "validation_reco.pdf") as pdf,  # type: ignore
+        PDFDocument(config.output_path / "validation_reco.pdf") as pdf,
     ):
         for variable, label in [
             ("trackeff_vs_pT", "Track momentum [GeV]"),

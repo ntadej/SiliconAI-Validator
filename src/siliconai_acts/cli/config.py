@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 from typing import Any
 
 import tomli_w
-import tomllib
 
 from siliconai_acts.common.enums import EventType, ParticleType, SimulationType
 
-from .logging import Table, config_table, error_panel, info_panel
+from .logger import Table, config_table, error_panel, info_panel
 
 
 class TyperState:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import acts
 import awkward as ak
@@ -120,9 +120,9 @@ def diagnostics_plot(
     label_x_base: str,
     label_y: str,
     labels_extra: list[str],
-    logx: Optional[bool] = None,
-    logy: Optional[bool] = None,
-    legend: Optional[list[str]] = None,
+    logx: bool | None = None,
+    logy: bool | None = None,
+    legend: list[str] | None = None,
     errors: bool = True,
 ) -> bool:
     """Diagnostics plot helper function."""
@@ -177,7 +177,7 @@ def diagnostics_scatter_plot(
     label_x_base: str,
     label_y_base: str,
     labels_extra: list[str],
-    aspect: Optional[float] = None,
+    aspect: float | None = None,
 ) -> bool:
     """Diagnostics scatter plot helper function."""
     label_x = common_labels.get(column_x)
@@ -216,7 +216,7 @@ def process_particles(particles: ak.Array, primary: bool = True) -> pd.DataFrame
     if primary:
         tmp = ak.without_field(tmp, "event_id")
         data_columns = {"event_id": event} | dict(
-            zip(ak.fields(tmp[:, 0]), ak.unzip(tmp[:, 0])),
+            zip(ak.fields(tmp[:, 0]), ak.unzip(tmp[:, 0]), strict=False),
         )
         data_frame = ak.to_dataframe(ak.zip(data_columns))
     else:
@@ -282,7 +282,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
             rf"with $p_\mathrm{{T}} > {cut:.2f}$ GeV",
         ]
 
-    with PDFDocument(config.output_path / out_file_name) as pdf:  # type: ignore
+    with PDFDocument(config.output_path / out_file_name) as pdf:
         for column in columns:
             diagnostics_plot(
                 pdf,
@@ -478,7 +478,7 @@ def plot_hits(config: Configuration) -> None:
         "secondary particles only, pixel only",
     ]
 
-    with PDFDocument(config.output_path / out_file_name) as pdf:  # type: ignore
+    with PDFDocument(config.output_path / out_file_name) as pdf:
         for data, label_base, labels in zip(
             [
                 hits_data_primary,
@@ -498,6 +498,7 @@ def plot_hits(config: Configuration) -> None:
                 labels_extra_secondary,
                 labels_extra_secondary_pixel,
             ],
+            strict=False,
         ):
             diagnostics_scatter_plot(
                 pdf,
