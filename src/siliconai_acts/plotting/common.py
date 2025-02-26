@@ -119,7 +119,7 @@ def plot_hist(  # noqa: C901 PLR0912
             hist_main = hist
             bins_main = bins
         else:
-            hist_list.append(hist)  # type: ignore
+            hist_list.append(hist)
         hep.histplot(hist, bins, ax=ax_main, yerr=errors, label=label, color=color)
 
     label_offset = 0.1 if ratio else 0.075
