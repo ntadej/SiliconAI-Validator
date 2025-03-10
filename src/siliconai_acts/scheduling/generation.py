@@ -31,10 +31,14 @@ def schedule_event_generation(
     output_dir: Path | None = None,
 ) -> None:
     """Schedule event generation in the ACTS example framework."""
-    vertex_generator = acts.examples.GaussianVertexGenerator(
-        mean=acts.Vector4(0, 0, 0, 0),
-        # stddev=acts.Vector4(10 * u.um, 10 * u.um, 50 * u.mm, 1 * u.ns),
-        stddev=acts.Vector4(
+    vertex_generator = acts.examples.UniformVertexGenerator(
+        min=acts.Vector4(
+            -config.smearing[0] * u.um,
+            -config.smearing[1] * u.um,
+            -config.smearing[2] * u.mm,
+            0,
+        ),
+        max=acts.Vector4(
             config.smearing[0] * u.um,
             config.smearing[1] * u.um,
             config.smearing[2] * u.mm,
@@ -70,12 +74,21 @@ def schedule_event_generation(
         else:
             eta_config = EtaConfig(config.eta, config.eta, uniform=True)
 
+        if config.phi:
+            phi_config = PhiConfig(config.phi[0], config.phi[1])
+        else:
+            phi_config = PhiConfig(0.0 * u.degree, 360.0 * u.degree)
+
         addParticleGun(
             sequencer,
-            ParticleConfig(num=1, pdg=particle, randomizeCharge=True),
+            ParticleConfig(
+                num=1,
+                pdg=particle,
+                randomizeCharge=config.randomize_charge,
+            ),
             momentum_config,
             eta_config,
-            PhiConfig(0.0 * u.degree, 360.0 * u.degree),
+            phi_config,
             vtxGen=vertex_generator,
             multiplicity=1,
             rnd=rnd,

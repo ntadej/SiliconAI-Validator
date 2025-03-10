@@ -13,6 +13,8 @@ from acts.examples.simulation import (
     ParticleSelectorConfig,
     addFatras,
     addGeant4,
+    addGenParticleSelection,
+    addSimParticleSelection,
 )
 
 from siliconai_acts.common.enums import SimulationType
@@ -34,7 +36,6 @@ def schedule_simulation(
     detector: acts.Detector,
     tracking_geometry: acts.TrackingGeometry,
     field: acts.MagneticFieldProvider,
-    input_collection: str = "particles_input",
     output_path: Path | None = None,
     preselect_particles: ParticleSelectorConfig | None = None,
     postselect_particles: ParticleSelectorConfig | None = None,
@@ -55,6 +56,8 @@ def schedule_simulation(
             ),
         ]
 
+    addGenParticleSelection(sequencer, preselect_particles)
+
     if simulation_type is SimulationType.Fatras:
         addFatras(
             sequencer,
@@ -62,9 +65,6 @@ def schedule_simulation(
             field=field,
             rnd=rnd,
             enableInteractions=True,
-            preSelectParticles=preselect_particles,
-            postSelectParticles=postselect_particles,
-            inputParticles=input_collection,
             outputDirRoot=output_path,
             logLevel=log_level,
         )
@@ -75,9 +75,6 @@ def schedule_simulation(
             trackingGeometry=tracking_geometry,
             field=field,
             rnd=rnd,
-            inputParticles=input_collection,
-            preSelectParticles=preselect_particles,
-            postSelectParticles=postselect_particles,
             killVolume=tracking_geometry.highestTrackingVolume,
             killAfterTime=25 * u.ns,
             outputDirRoot=output_path,
@@ -86,6 +83,8 @@ def schedule_simulation(
             killSecondaries=disable_secondaries,
             recordHitsOfSecondaries=not disable_secondaries,
         )
+
+    addSimParticleSelection(sequencer, postselect_particles)
 
 
 def run_simulation(
@@ -121,7 +120,7 @@ def run_simulation(
     sequencer.addReader(
         acts.examples.RootParticleReader(
             level=acts.logging.WARNING,
-            outputParticles="particles_input",
+            outputParticles="particles_generated",
             filePath=input_path / "particles.root",
         ),
     )

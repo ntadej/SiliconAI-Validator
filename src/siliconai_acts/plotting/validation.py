@@ -145,7 +145,7 @@ def validate_hits(
             [reference_hits, generated_hits],
             "nhits",
             "Primary hit",
-            "Hits",
+            "Events",
             labels_extra_primary,
             legend=["Geant4", "Neural network"],
             errors=event < 0,
@@ -156,7 +156,7 @@ def validate_hits(
             [diff_hits],
             "nhits_diff",
             "Primary hit",
-            "Hits",
+            "Events",
             labels_extra_primary,
             errors=event < 0,
         )

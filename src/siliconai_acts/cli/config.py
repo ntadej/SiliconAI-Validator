@@ -228,10 +228,14 @@ class ProcessConfiguration:
             if isinstance(config["eta"], list)
             else float(config["eta"])
         )
+        self.phi: tuple[float, float] | None = (
+            tuple(config.get("phi", [])) if "phi" in config else None
+        )
 
         self.smearing: tuple[float, float, float] = tuple(
             config.get("smearing", [0, 0, 50]),
         )
+        self.randomize_charge: bool = config.get("randomize_charge", True)
 
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""

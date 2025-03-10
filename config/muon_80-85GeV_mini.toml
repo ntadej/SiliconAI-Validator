@@ -1,0 +1,15 @@
+labels = ["Single muons, 80 < $p_\\mathrm{T}$ < 85 GeV, 0.05 < $\\eta$ < 0.1"]
+name = "Muon pt80-85 eta005-010"
+events = 160000
+
+[process]
+type = "single_particle"
+particle = "mu"
+pt = [80, 85]
+eta = [0.05, 0.1]
+phi = [0.0, 0.1]
+randomize_charge = false
+
+[simulation]
+type = "geant4"
+disable_secondaries = true
