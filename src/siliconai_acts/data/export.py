@@ -77,7 +77,11 @@ def process_particle_vertices_as_hits(
     return vertex_data.sort_index()
 
 
-def export_hits(logger: Logger, config: Configuration) -> None:
+def export_hits(  # noqa: PLR0915
+    logger: Logger,
+    config: Configuration,
+    fixed_length: bool = False,
+) -> None:
     """Export hits for ML usage."""
     logger.info("Loading particles data...")
     particles_columns_common = ["event_id", "particle_type", "number_of_hits"]
@@ -151,6 +155,20 @@ def export_hits(logger: Logger, config: Configuration) -> None:
     output_data = cat_data.join(
         particles_data_common.reindex(cat_data.index, level=0),
     )
+
+    if fixed_length:
+        logger.info("Using fixed-lenght sequences...")
+        hits_count = output_data.reset_index().groupby("event_id").size()
+        hits_count_values = hits_count.value_counts()
+        wanted_length = hits_count_values.head(1).index[0]
+        logger.info("  sequence length: %d", wanted_length)
+        output_data = output_data[output_data["number_of_hits"] == wanted_length - 2]
+        output_size = output_data.reset_index().groupby("event_id").size().shape[0]
+        logger.info("  remaining number of sequences: %d", output_size)
+        output_data.index = output_data.index.remove_unused_levels().set_levels(  # type: ignore
+            list(range(output_size)),
+            level=0,
+        )
 
     logger.info("Exporting metadata...")
     output_data_float = output_data.select_dtypes(include=["float32", "float64"])

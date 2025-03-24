@@ -264,6 +264,13 @@ def export(
             help="Task configuration file.",
         ),
     ],
+    fixed_length: Annotated[
+        bool,
+        typer.Option(
+            "--fixed-length",
+            help="Only select fixed-lenght sequences (the ones with highest rate).",
+        ),
+    ] = False,
 ) -> None:
     """Export events."""
     global_config = GlobalConfiguration.load(state)
@@ -276,7 +283,7 @@ def export(
 
     from siliconai_acts.data.export import export_hits
 
-    export_hits(logger, config)
+    export_hits(logger, config, fixed_length=fixed_length)
 
 
 @application.command("import")

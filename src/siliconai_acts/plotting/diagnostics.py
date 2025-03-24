@@ -103,6 +103,7 @@ common_binning = {
     "tpx": (200, -100, 100),
     "tpy": (200, -100, 100),
     "tpz": (200, -100, 100),
+    "nhits": (20, 0, 20),
 }
 
 pixel_boundary_r = 200
@@ -522,6 +523,17 @@ def plot_hits(config: Configuration) -> None:
                 label_base,
                 labels,
             )
+
+            if len(data):
+                hits_count = data.reset_index().groupby("event_id").count()["index"]
+                diagnostics_plot(
+                    pdf,
+                    hits_count,
+                    "nhits",
+                    "Primary hit",
+                    "Events",
+                    labels_extra_primary,
+                )
 
         for column in columns:
             diagnostics_plot(
