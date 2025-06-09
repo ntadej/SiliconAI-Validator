@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 def preprocess_input(file: Path, key: str) -> pd.DataFrame:
     """Preprocess input data."""
     with pd.HDFStore(file, mode="r") as store:
-        data: pd.DataFrame = cast(pd.DataFrame, store[key])
+        data: pd.DataFrame = cast("pd.DataFrame", store[key])
 
     data = data.drop(
         data[

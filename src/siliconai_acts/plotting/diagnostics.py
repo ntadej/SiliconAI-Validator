@@ -331,7 +331,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
             ]:
                 diagnostics_plot(
                     pdf,
-                    counts,
+                    counts.tolist(),
                     "number_secondary_particles",
                     "",
                     "Events",

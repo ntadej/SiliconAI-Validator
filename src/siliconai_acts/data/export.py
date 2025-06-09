@@ -165,7 +165,7 @@ def export_hits(  # noqa: PLR0915
         output_data = output_data[output_data["number_of_hits"] == wanted_length - 2]
         output_size = output_data.reset_index().groupby("event_id").size().shape[0]
         logger.info("  remaining number of sequences: %d", output_size)
-        output_data.index = output_data.index.remove_unused_levels().set_levels(  # type: ignore
+        output_data.index = output_data.index.remove_unused_levels().set_levels(
             list(range(output_size)),
             level=0,
         )
