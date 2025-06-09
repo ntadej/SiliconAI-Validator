@@ -13,13 +13,13 @@ from acts.examples.simulation import (
     addParticleGun,
 )
 
-from siliconai_acts.common.enums import EventType, ParticleType
+from siliconai_validator.common.enums import EventType, ParticleType
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.config import ProcessConfiguration
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.config import ProcessConfiguration
+    from siliconai_validator.cli.logger import Logger
 
 u = acts.UnitConstants
 

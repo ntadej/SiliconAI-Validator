@@ -15,12 +15,12 @@ from acts.examples.reconstruction import (
     addSeeding,
 )
 
-from siliconai_acts.scheduling.digitization import schedule_digitization
+from siliconai_validator.scheduling.digitization import schedule_digitization
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.logger import Logger
 
 
 u = acts.UnitConstants
@@ -127,7 +127,7 @@ def run_reconstruction(
     )
 
     # import detector lazily
-    from siliconai_acts.common.detector import (
+    from siliconai_validator.common.detector import (
         odd_decorators,
         odd_digi_config,
         odd_field,

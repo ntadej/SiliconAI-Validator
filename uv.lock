@@ -1257,7 +1257,7 @@ wheels = [
 ]
 
 [[package]]
-name = "siliconai-acts"
+name = "siliconai-validator"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },

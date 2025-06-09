@@ -24,7 +24,7 @@ from rich.table import Table
 from typer import Exit
 
 if TYPE_CHECKING:
-    from siliconai_acts.cli.config import GlobalConfiguration
+    from siliconai_validator.cli.config import GlobalConfiguration
 
 
 def config_table() -> Table:
@@ -89,7 +89,7 @@ def setup_logger(global_config: GlobalConfiguration, name: str | None = None) ->
             "%(asctime)s %(levelname)-8s %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-        file_path = global_config.output_path / f"siliconai_acts_{name}.log"
+        file_path = global_config.output_path / f"siliconai_validator_{name}.log"
         file_handler = RotatingFileHandler(
             file_path,
             mode="a",

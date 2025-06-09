@@ -11,7 +11,7 @@ from acts.examples.simulation import addDigitization
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.logger import Logger
 
 
 def schedule_digitization(
@@ -54,7 +54,7 @@ def run_digitization(
     )
 
     # import detector lazily
-    from siliconai_acts.common.detector import (
+    from siliconai_validator.common.detector import (
         odd_decorators,
         odd_digi_config,
         odd_field,

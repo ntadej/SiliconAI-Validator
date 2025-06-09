@@ -7,12 +7,12 @@ if [[ -z ${BASH_SOURCE[0]+x} ]]; then
     SETUP_LOCATION=${(%):-%N}
 fi
 
-SILICONAI_ACTS_PATH=$(cd "$(dirname "${SETUP_LOCATION}")" && cd .. && pwd)
-ACTS_SOURCE_PATH="${SILICONAI_ACTS_PATH}/dependencies/ACTS"
-ACTS_BUILD_PATH="${SILICONAI_ACTS_PATH}/dependencies/build"
-ACTS_INSTALL_PATH="${SILICONAI_ACTS_PATH}/dependencies/install"
+SILICONAI_VALIDATOR_PATH=$(cd "$(dirname "${SETUP_LOCATION}")" && cd .. && pwd)
+ACTS_SOURCE_PATH="${SILICONAI_VALIDATOR_PATH}/dependencies/ACTS"
+ACTS_BUILD_PATH="${SILICONAI_VALIDATOR_PATH}/dependencies/build"
+ACTS_INSTALL_PATH="${SILICONAI_VALIDATOR_PATH}/dependencies/install"
 
-echo "SiliconAI ACTS path: ${SILICONAI_ACTS_PATH}"
+echo "SiliconAI Validator path: ${SILICONAI_VALIDATOR_PATH}"
 echo "ACTS source path: ${ACTS_SOURCE_PATH}"
 echo "ACTS build path: ${ACTS_BUILD_PATH}"
 echo "ACTS install path: ${ACTS_INSTALL_PATH}"
@@ -53,7 +53,7 @@ echo
 echo "Setting-up ACTS for usage in the environment..."
 source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
-if [[ "$PYTHONPATH:" != "${SILICONAI_ACTS_PATH}/.venv/lib/python3.11/site-packages:"* ]];
+if [[ "$PYTHONPATH:" != "${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.11/site-packages:"* ]];
 then
-    export PYTHONPATH="${SILICONAI_ACTS_PATH}/.venv/lib/python3.11/site-packages:${PYTHONPATH}"
+    export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.11/site-packages:${PYTHONPATH}"
 fi

@@ -11,15 +11,15 @@ import numpy as np
 import uproot
 from particle.pdgid import literals as particle_literals
 
-from siliconai_acts.common.enums import ProductionStep, SimulationParticleOutcome
-from siliconai_acts.data.utils import common_initial_barcode
-from siliconai_acts.plotting.common import plot_hist, plot_scatter
-from siliconai_acts.plotting.utils import PDFDocument
+from siliconai_validator.common.enums import ProductionStep, SimulationParticleOutcome
+from siliconai_validator.data.utils import common_initial_barcode
+from siliconai_validator.plotting.common import plot_hist, plot_scatter
+from siliconai_validator.plotting.utils import PDFDocument
 
 if TYPE_CHECKING:
     import pandas as pd
 
-    from siliconai_acts.cli.config import Configuration
+    from siliconai_validator.cli.config import Configuration
 
 u = acts.UnitConstants
 
@@ -401,7 +401,7 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
     data_frame["tpz"] += data_frame["deltapz"]
     data_frame["tpt"] += data_frame["deltapt"]
 
-    from siliconai_acts.data.utils import global_to_local_vec
+    from siliconai_validator.data.utils import global_to_local_vec
 
     if len(data_frame):
         local_data = global_to_local_vec(

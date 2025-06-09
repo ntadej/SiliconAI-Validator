@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 import uproot
 
-from siliconai_acts.data.export import geometry_id_end, geometry_id_start
-from siliconai_acts.data.utils import common_initial_barcode
+from siliconai_validator.data.export import geometry_id_end, geometry_id_start
+from siliconai_validator.data.utils import common_initial_barcode
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.config import Configuration
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.config import Configuration
+    from siliconai_validator.cli.logger import Logger
 
 
 def preprocess_input(file: Path, key: str) -> pd.DataFrame:
@@ -59,7 +59,7 @@ def preprocess_input(file: Path, key: str) -> pd.DataFrame:
         data["deltapx"] ** 2 + data["deltapy"] ** 2 + data["deltapz"] ** 2,
     )
 
-    from siliconai_acts.data.utils import local_to_global_vec
+    from siliconai_validator.data.utils import local_to_global_vec
 
     try:
         global_data = local_to_global_vec(

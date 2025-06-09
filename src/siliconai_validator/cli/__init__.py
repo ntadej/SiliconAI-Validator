@@ -1,4 +1,4 @@
-"""SiliconAI ACTS CLI."""
+"""SiliconAI Validator CLI."""
 
 from __future__ import annotations
 
@@ -9,16 +9,16 @@ from typing import Annotated
 
 import typer
 
-from siliconai_acts import __version__
-from siliconai_acts.cli.config import (
+from siliconai_validator import __version__
+from siliconai_validator.cli.config import (
     Configuration,
     GlobalConfiguration,
     TyperState,
     config_missing,
 )
-from siliconai_acts.cli.logger import setup_logger
-from siliconai_acts.common.enums import ProductionStep
-from siliconai_acts.plotting.common import setup_style
+from siliconai_validator.cli.logger import setup_logger
+from siliconai_validator.common.enums import ProductionStep
+from siliconai_validator.plotting.common import setup_style
 
 application = typer.Typer()
 state = TyperState()
@@ -27,7 +27,7 @@ state = TyperState()
 def version_callback(value: bool) -> None:
     """Version callback."""
     if value:
-        typer.echo(f"SiliconAI ACTS, version {__version__}")
+        typer.echo(f"SiliconAI Validator, version {__version__}")
         raise typer.Exit()
 
 
@@ -39,7 +39,7 @@ def main(
         typer.Option(
             "-g",
             "--global-config",
-            envvar="SILICONAI_ACTS_GLOBAL_CONFIG",
+            envvar="SILICONAI_VALIDATOR_GLOBAL_CONFIG",
             help="Global configuration file.",
         ),
     ] = Path(
@@ -62,7 +62,7 @@ def main(
         ),
     ] = False,
 ) -> None:
-    """SiliconAI ACTS CLI app."""
+    """SiliconAI Validator CLI app."""
     if ctx.invoked_subcommand != "config" and not config.exists():  # pragma: no cover
         if "--help" in argv:
             return
@@ -93,7 +93,7 @@ def generate(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -113,7 +113,7 @@ def generate(
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
-    from siliconai_acts.scheduling.generation import run_generation
+    from siliconai_validator.scheduling.generation import run_generation
 
     run_generation(
         logger,
@@ -126,7 +126,7 @@ def generate(
     if diagnostics:
         setup_style()
 
-        from siliconai_acts.plotting.diagnostics import plot_particles
+        from siliconai_validator.plotting.diagnostics import plot_particles
 
         plot_particles(config, ProductionStep.Generation)
 
@@ -138,7 +138,7 @@ def simulate(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -158,7 +158,7 @@ def simulate(
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
-    from siliconai_acts.scheduling.simulation import run_simulation_multiprocess
+    from siliconai_validator.scheduling.simulation import run_simulation_multiprocess
 
     run_simulation_multiprocess(
         logger,
@@ -172,7 +172,7 @@ def simulate(
     if diagnostics:
         setup_style()
 
-        from siliconai_acts.plotting.diagnostics import plot_hits, plot_particles
+        from siliconai_validator.plotting.diagnostics import plot_hits, plot_particles
 
         plot_particles(config, ProductionStep.Simulation)
         plot_hits(config)
@@ -185,7 +185,7 @@ def reconstruct(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -236,7 +236,7 @@ def reconstruct(
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
-    from siliconai_acts.scheduling.reconstruction import run_reconstruction
+    from siliconai_validator.scheduling.reconstruction import run_reconstruction
 
     run_reconstruction(
         logger,
@@ -260,7 +260,7 @@ def export(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -281,7 +281,7 @@ def export(
 
     logger.info("Exporting data")
 
-    from siliconai_acts.data.export import export_hits
+    from siliconai_validator.data.export import export_hits
 
     export_hits(logger, config, fixed_length=fixed_length)
 
@@ -293,7 +293,7 @@ def import_data(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -302,7 +302,7 @@ def import_data(
         typer.Option(
             "-f",
             "--file",
-            envvar="SILICONAI_ACTS_FILE",
+            envvar="SILICONAI_VALIDATOR_FILE",
             help="Output file to import.",
         ),
     ],
@@ -316,7 +316,7 @@ def import_data(
 
     logger.info("Importing results")
 
-    from siliconai_acts.data.importing import import_results
+    from siliconai_validator.data.importing import import_results
 
     import_results(logger, config, file)
 
@@ -328,7 +328,7 @@ def diagnostics(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -344,7 +344,7 @@ def diagnostics(
 
     setup_style()
 
-    from siliconai_acts.plotting.diagnostics import plot_hits, plot_particles
+    from siliconai_validator.plotting.diagnostics import plot_hits, plot_particles
 
     plot_particles(config, ProductionStep.Generation)
     plot_particles(config, ProductionStep.Simulation)
@@ -358,7 +358,7 @@ def validate(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -367,7 +367,7 @@ def validate(
         typer.Option(
             "-f",
             "--file",
-            envvar="SILICONAI_ACTS_FILE",
+            envvar="SILICONAI_VALIDATOR_FILE",
             help="Output file to validate.",
         ),
     ],
@@ -391,7 +391,7 @@ def validate(
 
     setup_style()
 
-    from siliconai_acts.plotting.validation import validate
+    from siliconai_validator.plotting.validation import validate
 
     validate(config, file, event)
 
@@ -403,7 +403,7 @@ def validate_reco(
         typer.Option(
             "-c",
             "--config",
-            envvar="SILICONAI_ACTS_CONFIG",
+            envvar="SILICONAI_VALIDATOR_CONFIG",
             help="Task configuration file.",
         ),
     ],
@@ -419,6 +419,6 @@ def validate_reco(
 
     setup_style()
 
-    from siliconai_acts.plotting.validation import validate_reconstruction
+    from siliconai_validator.plotting.validation import validate_reconstruction
 
     validate_reconstruction(config)

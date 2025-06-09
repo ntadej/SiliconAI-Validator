@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "siliconai-acts"
+name = "siliconai-validator"
 dynamic = ["version"]
-description = "SiliconAI companion package for ACTS integration"
+description = "SiliconAI companion package for ACTS-based validation"
 authors = [{ name = "Tadej Novak", email = "tadej.novak@cern.ch" }]
 requires-python = "==3.11.*"
 readme = "README.md"
@@ -50,14 +50,14 @@ dev = [
 ]
 
 [project.scripts]
-siliconai_acts = "siliconai_acts.cli:application"
+siliconai_validator = "siliconai_validator.cli:application"
 
 [tool.hatch.version]
-path = "src/siliconai_acts/__init__.py"
+path = "src/siliconai_validator/__init__.py"
 
 [tool.coverage.run]
 branch = true
-source = ["src/siliconai"]
+source = ["src/siliconai_validator"]
 
 [tool.coverage.report]
 precision = 2
@@ -154,5 +154,5 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--ignore=src/siliconai_acts/tests/ --cov=siliconai_acts --cov-report=term-missing:skip-covered --cov-report xml --cov-report html:coverage"
+addopts = "--ignore=src/siliconai_validator/tests/ --cov=siliconai_validator --cov-report=term-missing:skip-covered --cov-report xml --cov-report html:coverage"
 testpaths = ["tests"]

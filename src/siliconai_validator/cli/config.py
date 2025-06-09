@@ -8,7 +8,7 @@ from typing import Any
 
 import tomli_w
 
-from siliconai_acts.common.enums import EventType, ParticleType, SimulationType
+from siliconai_validator.common.enums import EventType, ParticleType, SimulationType
 
 from .logger import Table, config_table, error_panel, info_panel
 
@@ -306,12 +306,12 @@ def config_missing(config_file: Path) -> None:
     error_message = (
         f"Configuration file [blue]'{config_file}'[/blue] does not exist.\n"
         "Please run"
-        " [blue]'siliconai_acts config [bold]--generate[/bold]'[/blue]"
+        " [blue]'siliconai_validator config [bold]--generate[/bold]'[/blue]"
         " to generate it.\n"
         "Optionally you can specify the path using the"
         " [blue]'[bold]--global-config[/bold]'[/blue] option"
         " or using the environment variable"
-        " [blue bold]SILICONAI_ACTS_GLOBAL_CONFIG[/blue bold].]"
+        " [blue bold]SILICONAI_VALIDATOR_GLOBAL_CONFIG[/blue bold].]"
     )
     raise error_panel(error_message)
 
@@ -323,7 +323,7 @@ def task_config_missing(config_file: Path) -> None:
         "Optionally you can specify the path using the"
         " [blue]'[bold]--config[/bold]'[/blue] option"
         " or using the environment variable"
-        " [blue bold]SILICONAI_ACTS_CONFIG[/blue bold].]"
+        " [blue bold]SILICONAI_VALIDATOR_CONFIG[/blue bold].]"
     )
     raise error_panel(error_message)
 

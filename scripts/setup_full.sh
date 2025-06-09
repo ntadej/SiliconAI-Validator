@@ -1,4 +1,4 @@
-# Setup full SiliconAI ACTS environment
+# Setup full SiliconAI Validator environment
 
 # Bash location
 SETUP_LOCATION=${BASH_SOURCE[0]}

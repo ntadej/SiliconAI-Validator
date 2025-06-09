@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from siliconai_acts.common.detector import (
+from siliconai_validator.common.detector import (
     odd_digi_config,
     odd_tracking_geometry,
 )
-from siliconai_acts.scheduling.digitization import get_coordinates_converter
+from siliconai_validator.scheduling.digitization import get_coordinates_converter
 
 coordinates_converter = get_coordinates_converter(
     odd_tracking_geometry,

@@ -1,1 +1,1 @@
-"""SiliconAI-ACTS common test definitions."""
+"""SiliconAI Validator common test definitions."""

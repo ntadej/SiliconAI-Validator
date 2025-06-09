@@ -9,7 +9,7 @@ import pytest
 def env() -> dict[str, str]:
     """Return environment for tests."""
     values: dict[str, str] = {
-        "SILICONAI_ACTS_GLOBAL_CONFIG": "tests/resources/config.toml",
+        "SILICONAI_VALIDATOR_GLOBAL_CONFIG": "tests/resources/config.toml",
     }
     for key, value in values.items():
         environ[key] = value

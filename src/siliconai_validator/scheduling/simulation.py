@@ -17,14 +17,14 @@ from acts.examples.simulation import (
     addSimParticleSelection,
 )
 
-from siliconai_acts.common.enums import SimulationType
-from siliconai_acts.common.utils import rm_tree
+from siliconai_validator.common.enums import SimulationType
+from siliconai_validator.common.utils import rm_tree
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from siliconai_acts.cli.config import SimulationConfiguration
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.config import SimulationConfiguration
+    from siliconai_validator.cli.logger import Logger
 
 u = acts.UnitConstants
 
@@ -99,7 +99,7 @@ def run_simulation(
     rnd = acts.examples.RandomNumbers(seed=seed)
 
     # import detector lazily
-    from siliconai_acts.common.detector import (
+    from siliconai_validator.common.detector import (
         odd_decorators,
         odd_detector,
         odd_field,

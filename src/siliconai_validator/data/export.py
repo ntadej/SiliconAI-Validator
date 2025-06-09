@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 import uproot
 
-from siliconai_acts.plotting.diagnostics import process_hits, process_particles
+from siliconai_validator.plotting.diagnostics import process_hits, process_particles
 
 if TYPE_CHECKING:
-    from siliconai_acts.cli.config import Configuration
-    from siliconai_acts.cli.logger import Logger
+    from siliconai_validator.cli.config import Configuration
+    from siliconai_validator.cli.logger import Logger
 
 
 geometry_id_start = 1000000
