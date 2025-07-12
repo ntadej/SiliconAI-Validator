@@ -29,7 +29,6 @@ cmake -G Ninja \
     -DACTS_BUILD_PLUGIN_DD4HEP=ON \
     -DACTS_BUILD_PLUGIN_FPEMON=ON \
     -DACTS_BUILD_PLUGIN_GEANT4=ON \
-    -DACTS_BUILD_PLUGIN_TGEO=ON \
     -DACTS_BUILD_FATRAS=ON \
     -DACTS_BUILD_FATRAS_GEANT4=ON \
     -DACTS_BUILD_EXAMPLES_DD4HEP=ON \
@@ -53,7 +52,7 @@ echo
 echo "Setting-up ACTS for usage in the environment..."
 source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
-if [[ "$PYTHONPATH:" != "${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.11/site-packages:"* ]];
+if [[ "$PYTHONPATH:" != "${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.12/site-packages:"* ]];
 then
-    export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.11/site-packages:${PYTHONPATH}"
+    export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.12/site-packages:${PYTHONPATH}"
 fi

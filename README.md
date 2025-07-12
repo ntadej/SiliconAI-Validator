@@ -4,7 +4,7 @@
 
 ### Python and LCG environment
 
-Python 3.11 or later is required to run the code. LCG environment can be used
+Python 3.12 or later is required to run the code. LCG environment can be used
 to simplify the dependency setup for ACTS. In that case run
 
 ```bash
@@ -47,7 +47,6 @@ cmake -G Ninja \
     -DACTS_BUILD_PLUGIN_DD4HEP=ON \
     -DACTS_BUILD_PLUGIN_FPEMON=ON \
     -DACTS_BUILD_PLUGIN_GEANT4=ON \
-    -DACTS_BUILD_PLUGIN_TGEO=ON \
     -DACTS_BUILD_FATRAS=ON \
     -DACTS_BUILD_FATRAS_GEANT4=ON \
     -DACTS_BUILD_EXAMPLES_DD4HEP=ON \
@@ -62,7 +61,7 @@ Inside the virtual environment do the following setup each time:
 ```bash
 source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
-export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.11/site-packages:${PYTHONPATH}"
+export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.12/site-packages:${PYTHONPATH}"
 ```
 
 ### Full setup

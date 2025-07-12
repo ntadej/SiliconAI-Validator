@@ -6,9 +6,9 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_SUBMODULE_DEPTH: 1
-  UV_VERSION: 0.5
+  UV_VERSION: 0.7
   UV_CACHE_DIR: .uv-cache
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: 3.12
   BASE_LAYER: bookworm-slim
 
 # Run pre-commit hooks
