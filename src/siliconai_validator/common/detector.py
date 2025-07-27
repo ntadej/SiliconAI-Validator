@@ -23,8 +23,8 @@ odd_material_decorator: acts.IMaterialDecorator = acts.IMaterialDecorator.fromFi
 
 # ODD
 odd_detector = getOpenDataDetector(
-    odd_material_decorator,
-    odd_directory,
+    materialDecorator=odd_material_decorator,
+    odd_dir=odd_directory,
     logLevel=acts.logging.ERROR,
 )
 odd_tracking_geometry = odd_detector.trackingGeometry()

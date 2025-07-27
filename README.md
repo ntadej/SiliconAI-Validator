@@ -1,6 +1,19 @@
 # SiliconAI Validator
 
+Silicon detector simulation validation suite based on Acts.
+It is primarily targeting ML based silicon detector simulation.
+
 ## Setup
+
+### Quick full setup
+
+A convenience script is available for full setup:
+
+```bash
+source ./scripts/setup_full.sh
+```
+
+Then the `siliconai_validator` command is available in the shell.
 
 ### Python and LCG environment
 
@@ -8,7 +21,6 @@ Python 3.12 or later is required to run the code. LCG environment can be used
 to simplify the dependency setup for ACTS. In that case run
 
 ```bash
-setupATLAS -t devatlr
 source ./scripts/setup_LCG_view.sh
 ```
 
@@ -62,12 +74,4 @@ Inside the virtual environment do the following setup each time:
 source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
 export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.12/site-packages:${PYTHONPATH}"
-```
-
-### Full setup
-
-A convenience script is available for full setup:
-
-```bash
-source ./scripts/setup_full.sh
 ```

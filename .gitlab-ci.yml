@@ -55,10 +55,7 @@ pytest:
   before_script:
     - export PATH=/home/atlas/.local/bin:$PATH
     - curl -LsSf https://astral.sh/uv/install.sh | sh
-    - export ATLAS_LOCAL_ROOT_BASE="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase"
     - set +e
-    - source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
-    - setupATLAS -t devatlr
     - source "./scripts/setup_LCG_view.sh"
     - set -e
     - source "./scripts/setup_venv.sh"
