@@ -7,7 +7,7 @@ It is primarily targeting ML based silicon detector simulation.
 
 ### Quick full setup
 
-A convenience script is available for full setup:
+A convenience script is available for full setup on EL9-based systems:
 
 ```bash
 source ./scripts/setup_full.sh
@@ -75,3 +75,23 @@ source "${ACTS_INSTALL_PATH}/bin/this_acts.sh"
 source "${ACTS_INSTALL_PATH}/python/setup.sh"
 export PYTHONPATH="${SILICONAI_VALIDATOR_PATH}/.venv/lib/python3.12/site-packages:${PYTHONPATH}"
 ```
+
+## License
+
+Copyright (C) 2024 Tadej Novak
+
+This project is published under the terms of the Mozilla Public
+License, v. 2.0, available in the file [LICENSE.md](LICENSE.md)
+and at <http://mozilla.org/MPL/2.0/>.
+
+<!--
+SPDX-License-Identifier: MPL-2.0
+-->
+
+## Acknowledgements
+
+This software is supported by the European Union's Horizon
+Europe research and innovation programme under the Marie Skłodowska-Curie
+Postdoctoral Fellowship Programme, SMASH, co-funded under the grant agreement
+No. 101081355. The SMASH project is co-funded by the Republic of Slovenia and
+the European Union from the European Regional Development Fund.
