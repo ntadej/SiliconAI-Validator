@@ -16,7 +16,7 @@ fi
 
 pushd "${SILICONAI_VALIDATOR_PATH}" > /dev/null
 
-uv sync
 source .venv/bin/activate
+uv sync --active
 
 popd > /dev/null

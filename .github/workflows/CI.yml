@@ -1,0 +1,78 @@
+name: Continuous Integration
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    container: ghcr.io/acts-project/spack-container:13_linux-ubuntu24.04-x86_64_gcc-13.3.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python venv
+        run: |
+          uv sync -p 3.13
+
+      - name: Set up ACTS
+        shell: bash
+        run: |
+          cat "/root/.bashrc" | tail -n +102 | head -n -2 > env.sh
+          source env.sh
+
+          export ACTS_SOURCE_PATH="$(pwd)/dependencies/ACTS"
+          export ACTS_BUILD_PATH="$(pwd)/dependencies/build"
+          export ACTS_INSTALL_PATH="$(pwd)/dependencies/install"
+          echo "ACTS_SOURCE_PATH=${ACTS_SOURCE_PATH}" >> $GITHUB_ENV
+          echo "ACTS_BUILD_PATH=${ACTS_BUILD_PATH}" >> $GITHUB_ENV
+          echo "ACTS_INSTALL_PATH=${ACTS_INSTALL_PATH}" >> $GITHUB_ENV
+
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+
+          cmake -G Ninja \
+            -S "${ACTS_SOURCE_PATH}" \
+            -B "${ACTS_BUILD_PATH}" \
+            -DCMAKE_INSTALL_PREFIX="${ACTS_INSTALL_PATH}" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DACTS_BUILD_ODD=ON \
+            -DACTS_BUILD_PLUGIN_DD4HEP=ON \
+            -DACTS_BUILD_PLUGIN_FPEMON=ON \
+            -DACTS_BUILD_PLUGIN_GEANT4=ON \
+            -DACTS_BUILD_FATRAS=ON \
+            -DACTS_BUILD_FATRAS_GEANT4=ON \
+            -DACTS_BUILD_EXAMPLES_DD4HEP=ON \
+            -DACTS_BUILD_EXAMPLES_GEANT4=ON \
+            -DACTS_BUILD_EXAMPLES_PYTHON_BINDINGS=ON
+          cmake --build "${ACTS_BUILD_PATH}"
+          cmake --build "${ACTS_BUILD_PATH}" --target install
+
+      - name: Run tests
+        shell: bash
+        run: |
+          source env.sh
+          source "${ACTS_INSTALL_PATH}/bin/this_acts_withdeps.sh"
+          source "${ACTS_INSTALL_PATH}/python/setup.sh"
+
+          uv run pytest -W error
+
+      # - name: Report coverage with Codecov
+      #   if: github.event_name == 'push' && matrix.python-version == 3.13 && matrix.os == 'ubuntu-24.04'
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     files: ./coverage.xml
+      #     flags: unittests
+
+      # - name: Upload test results to Codecov
+      #   if: ${{ !cancelled() }} && matrix.python-version == 3.13 && matrix.os == 'ubuntu-24.04'
+      #   uses: codecov/test-results-action@v1
