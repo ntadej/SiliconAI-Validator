@@ -3,6 +3,7 @@ version = 1
 [[annotations]]
 path = [
     ".gitignore",
+    ".github/**/*",
     ".gitlab-ci.yml",
     ".gitmodules",
     ".pre-commit-config.yaml",
@@ -10,6 +11,8 @@ path = [
     ".vscode/settings.json",
     "config/*.toml",
     "dependencies/hashes",
+    "docker/Dockerfile",
+    "docker/build.sh",
     "pyproject.toml",
     "scripts/*.sh",
     "tests/resources/*.toml",
