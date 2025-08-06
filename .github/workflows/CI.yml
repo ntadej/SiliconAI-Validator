@@ -4,7 +4,7 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-24.04
-    container: ghcr.io/ntadej/siliconai-validator/acts:latest
+    container: ghcr.io/ntadej/siliconai-validator/acts:b95d564efbc6146f84ac793fc4eed6e124eb5fbe
     steps:
       - name: Checkout
         uses: actions/checkout@v4
