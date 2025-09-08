@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+import awkward as ak
 import numpy as np
 import pandas as pd
 import uproot
@@ -190,10 +191,21 @@ def validate(config: Configuration, file: Path, event: int = -1) -> None:
     validate_hits(config, file.stem, reference, generated, event)
 
 
-def validate_reconstruction(config: Configuration) -> None:
+def validate_reconstruction_performance(config: Configuration) -> None:
     """Validate reconstruction results."""
-    reference_file = config.output_path / "reference" / "performance_seeding.root"
-    generated_file = config.output_path / "generated" / "performance_seeding.root"
+    reference_file_seeding = (
+        config.output_path / "reference" / "performance_seeding.root"
+    )
+    generated_file_seeding = (
+        config.output_path / "generated" / "performance_seeding.root"
+    )
+
+    reference_file_ckf = (
+        config.output_path / "reference" / "performance_fitting_ckf.root"
+    )
+    generated_file_ckf = (
+        config.output_path / "generated" / "performance_fitting_ckf.root"
+    )
 
     import skhep_testdata
 
@@ -201,48 +213,108 @@ def validate_reconstruction(config: Configuration) -> None:
         hist = fp["TEfficiencyName"]  # noqa: F841
 
     with (
-        uproot.open(reference_file) as file_ref,
-        uproot.open(generated_file) as file_gen,
-        PDFDocument(config.output_path / "validation_reco.pdf") as pdf,
+        uproot.open(reference_file_seeding) as file_ref_seeding,
+        uproot.open(generated_file_seeding) as file_gen_seeding,
+        uproot.open(reference_file_ckf) as file_ref_ckf,
+        uproot.open(generated_file_ckf) as file_gen_ckf,
+        PDFDocument(config.output_path / "validation_reco_performance.pdf") as pdf,
     ):
-        for variable, label in [
-            ("trackeff_vs_pT", "Track momentum [GeV]"),
-            ("trackeff_vs_z0", "Track z_0 [mm]"),
+        for file_ref, file_gen, file_label in [
+            (file_ref_seeding, file_gen_seeding, "Seeding"),
+            (file_ref_ckf, file_gen_ckf, "CKF"),
         ]:
-            reference_eff_passed = (
-                file_ref[variable].member("fPassedHistogram").to_numpy()
-            )
-            reference_eff_total = (
-                file_ref[variable].member("fTotalHistogram").to_numpy()
-            )
-            generated_eff_passed = (
-                file_gen[variable].member("fPassedHistogram").to_numpy()
-            )
-            generated_eff_total = (
-                file_gen[variable].member("fTotalHistogram").to_numpy()
-            )
+            for variable, variable_label in [
+                ("trackeff_vs_pT", "Track momentum [GeV]"),
+                ("trackeff_vs_z0", "Track z_0 [mm]"),
+            ]:
+                reference_eff_passed = (
+                    file_ref[variable].member("fPassedHistogram").to_numpy()
+                )
+                reference_eff_total = (
+                    file_ref[variable].member("fTotalHistogram").to_numpy()
+                )
+                generated_eff_passed = (
+                    file_gen[variable].member("fPassedHistogram").to_numpy()
+                )
+                generated_eff_total = (
+                    file_gen[variable].member("fTotalHistogram").to_numpy()
+                )
 
-            indices = reference_eff_total[0] > 0
-            indices_bins = np.append(reference_eff_total[0] > 0, False)
-            indices_bins[np.nonzero(indices_bins)[0][-1] + 1] = True
+                indices = reference_eff_total[0] > 0
+                indices_bins = np.append(reference_eff_total[0] > 0, False)
+                indices_bins[np.nonzero(indices_bins)[0][-1] + 1] = True
 
-            reference_passed = reference_eff_passed[0][indices]
-            reference_total = reference_eff_total[0][indices]
-            generated_passed = generated_eff_passed[0][indices]
-            generated_total = generated_eff_total[0][indices]
+                reference_passed = reference_eff_passed[0][indices]
+                reference_total = reference_eff_total[0][indices]
+                generated_passed = generated_eff_passed[0][indices]
+                generated_total = generated_eff_total[0][indices]
 
-            bins = reference_eff_total[1][indices_bins]
-            bin_centers = bins[1:] - (bins[1] - bins[0]) / 2
-            bin_errors = len(reference_total) * [(bins[1] - bins[0]) / 2]
+                bins = reference_eff_total[1][indices_bins]
+                bin_centers = bins[1:] - (bins[1] - bins[0]) / 2
+                bin_errors = len(reference_total) * [(bins[1] - bins[0]) / 2]
 
-            reference_efficiency = reference_passed / reference_total
-            reference_err = (
-                np.sqrt(reference_passed) / reference_total * reference_efficiency
-            )
-            generated_efficiency = generated_passed / generated_total
-            generated_err = (
-                np.sqrt(generated_passed) / generated_total * generated_efficiency
-            )
+                reference_efficiency = reference_passed / reference_total
+                reference_err = (
+                    np.sqrt(reference_passed) / reference_total * reference_efficiency
+                )
+                generated_efficiency = generated_passed / generated_total
+                generated_err = (
+                    np.sqrt(generated_passed) / generated_total * generated_efficiency
+                )
+
+                labels_extra = [
+                    *config.labels,
+                    f"{config.events} events",
+                ]
+                labels_extra_primary = [
+                    *labels_extra,
+                    "primary particles only",
+                ]
+
+                fig, ax = plot_errorbar(
+                    bin_centers,
+                    bin_errors,
+                    [reference_efficiency, generated_efficiency],
+                    [reference_err, generated_err],
+                    legend=["Geant4", "Neural network"],
+                    label_x=variable_label,
+                    label_y=f"{file_label} efficiency",
+                    labels_extra=labels_extra_primary,
+                )
+                if fig:
+                    fig.set_size_inches(6, 5)
+                    pdf.save(fig)
+                    # plt.close(fig)
+
+
+def validate_reconstruction_tracks(config: Configuration) -> None:
+    """Validate reconstruction results."""
+    reference_file = config.output_path / "reference" / "tracksummary_ckf.root"
+    generated_file = config.output_path / "generated" / "tracksummary_ckf.root"
+
+    reference_data = uproot.open(f"{reference_file}:tracksummary").arrays()
+    generated_data = uproot.open(f"{generated_file}:tracksummary").arrays()
+
+    with PDFDocument(config.output_path / "validation_reco_tracks.pdf") as pdf:
+        for variable in [
+            "eLOC0_fit",
+            "eLOC1_fit",
+            "ePHI_fit",
+            "eTHETA_fit",
+            "eQOP_fit",
+            "res_eLOC0_fit",
+            "pull_eLOC0_fit",
+            "res_eLOC1_fit",
+            "pull_eLOC1_fit",
+            "res_ePHI_fit",
+            "pull_ePHI_fit",
+            "res_eTHETA_fit",
+            "pull_eTHETA_fit",
+            "res_eQOP_fit",
+            "pull_eQOP_fit",
+        ]:
+            reference_value = ak.flatten(reference_data[variable]).to_numpy()
+            generated_value = ak.flatten(generated_data[variable]).to_numpy()
 
             labels_extra = [
                 *config.labels,
@@ -253,17 +325,13 @@ def validate_reconstruction(config: Configuration) -> None:
                 "primary particles only",
             ]
 
-            fig, ax = plot_errorbar(
-                bin_centers,
-                bin_errors,
-                [reference_efficiency, generated_efficiency],
-                [reference_err, generated_err],
+            diagnostics_plot(
+                pdf,
+                [reference_value, generated_value],
+                variable,
+                "Track",
+                "Tracks",
+                labels_extra_primary,
                 legend=["Geant4", "Neural network"],
-                label_x=label,
-                label_y="Seeding efficiency",
-                labels_extra=labels_extra_primary,
+                ratio="res_" not in variable and "pull_" not in variable,
             )
-            if fig:
-                fig.set_size_inches(6, 5)
-                pdf.save(fig)
-                # plt.close(fig)

@@ -427,6 +427,10 @@ def validate_reco(
 
     setup_style()
 
-    from siliconai_validator.plotting.validation import validate_reconstruction
+    from siliconai_validator.plotting.validation import (
+        validate_reconstruction_performance,
+        validate_reconstruction_tracks,
+    )
 
-    validate_reconstruction(config)
+    validate_reconstruction_performance(config)
+    validate_reconstruction_tracks(config)

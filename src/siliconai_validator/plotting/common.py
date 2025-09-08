@@ -87,12 +87,13 @@ def plot_hist(  # noqa: C901 PLR0912
     labels_extra: list[str] | None = None,
     legend: list[str] | None = None,
     errors: bool = True,
+    ratio: bool = True,
 ) -> tuple[Figure | None, Axes | None]:
     """Plot a column from a dataframe."""
     if not data:
         return None, None
 
-    ratio = len(data) > 1
+    ratio = ratio and len(data) > 1
 
     binning_function = log_binning if logx else linear_binning
     binning = binning_function(
@@ -135,6 +136,9 @@ def plot_hist(  # noqa: C901 PLR0912
     for i, label in enumerate(labels_extra or []):
         ax_main.text(0.05, 0.9 - i * label_offset, label, transform=ax_main.transAxes)
 
+    if bin_range:
+        ax_main.set_xlim(bin_range)
+
     ax_main.set_ylabel(label_y or "Entries")
     if ax_ratio:
         ax_main.tick_params(labelbottom=False)
@@ -142,7 +146,7 @@ def plot_hist(  # noqa: C901 PLR0912
         ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
         ax_ratio.set_ylabel("Ratio", loc="center")
 
-        ax_ratio.set_ylim(0.9, 1.0999)
+        ax_ratio.set_ylim(0.95, 1.0499)
 
         plt.subplots_adjust(hspace=0.05)
     else:
@@ -238,7 +242,7 @@ def plot_errorbar(
         ax_ratio.set_xlabel(label_x)
         ax_ratio.set_ylabel("Ratio", loc="center")
 
-        ax_ratio.set_ylim(0.9, 1.0999)
+        ax_ratio.set_ylim(0.95, 1.0499)
 
         plt.subplots_adjust(hspace=0.05)
     else:

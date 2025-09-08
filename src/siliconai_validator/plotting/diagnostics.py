@@ -66,7 +66,23 @@ common_labels = {
     "deltapy": r"Hit momentum change $\Delta p_y$ [GeV]",
     "deltapz": r"Hit momentum change $\Delta p_z$ [GeV]",
     "nhits": r"Number of hits",
-    "nhits_diff": r"Difference in number of hits",
+    "nhits_diff": r"Difference in total number of hits",
+    # reconstruction
+    "eLOC0_fit": "x",
+    "eLOC1_fit": "y",
+    "ePHI_fit": r"$\phi$",
+    "eTHETA_fit": r"$\theta$",
+    "eQOP_fit": "q/p",
+    "res_eLOC0_fit": r"$x-x_\text{truth}$",
+    "pull_eLOC0_fit": r"$(x-x_\text{truth}) / \sigma_x$",
+    "res_eLOC1_fit": r"$y-y_\text{truth}$",
+    "pull_eLOC1_fit": r"$(y-y_\text{truth}) / \sigma_y$",
+    "res_ePHI_fit": r"$\phi-\phi_\text{truth}$",
+    "pull_ePHI_fit": r"$(\phi-\phi_\text{truth}) / \sigma_\phi$",
+    "res_eTHETA_fit": r"$\theta-\theta_\text{truth}$",
+    "pull_eTHETA_fit": r"$(\theta-\theta_\text{truth}) / \sigma_\theta$",
+    "res_eQOP_fit": r"$q/p-q/p_\text{truth}$",
+    "pull_eQOP_fit": r"$(q/p-q/p_\text{truth}) / \sigma_{q/p}$",
 }
 
 common_scales = {
@@ -90,6 +106,16 @@ common_logy = {
     "deltapz": True,
     "nhits": True,
     "nhits_diff": True,
+    # reco
+    "eLOC0_fit": True,
+    "eLOC1_fit": False,
+    "eQOP_fit": True,
+    "res_eLOC0_fit": True,
+    "pull_eLOC0_fit": True,
+    "res_eLOC1_fit": True,
+    "pull_eLOC1_fit": True,
+    "res_eQOP_fit": True,
+    "pull_eQOP_fit": True,
 }
 
 common_binning = {
@@ -102,8 +128,8 @@ common_binning = {
     "vy": (50, -200, 200),
     "vz": (50, -200, 200),
     "tr": (120, 0, 1200),
-    "tx": (300, -1500, 1500),
-    "ty": (300, -1500, 1500),
+    "tx": (440, -1100, 1100),
+    "ty": (440, -1100, 1100),
     "tz": (120, -600, 600),
     "lx": (110, -55, 55),
     "ly": (110, -55, 55),
@@ -111,7 +137,17 @@ common_binning = {
     "tpx": (200, -100, 100),
     "tpy": (200, -100, 100),
     "tpz": (200, -100, 100),
-    "nhits": (20, 0, 20),
+    "nhits": (40, 0, 40),
+    "nhits_diff": (7, 0, 7),
+    # reconstruction
+    "eLOC0_fit": (40, -0.2, 0.2),
+    "res_eLOC0_fit": (40, -0.2, 0.2),
+    "pull_eLOC0_fit": (40, -10, 10),
+    "eQOP_fit": (80, -4e-2, 4e-2),
+    "res_ePHI_fit": (80, -4e-3, 4e-3),
+    "pull_ePHI_fit": (80, -20, 20),
+    "res_eQOP_fit": (80, -4e-2, 4e-2),
+    "pull_eQOP_fit": (80, -20, 20),
 }
 
 pixel_boundary_r = 200
@@ -133,6 +169,7 @@ def diagnostics_plot(
     logy: bool | None = None,
     legend: list[str] | None = None,
     errors: bool = True,
+    ratio: bool = True,
 ) -> bool:
     """Diagnostics plot helper function."""
     label_x = common_labels.get(column)
@@ -168,6 +205,7 @@ def diagnostics_plot(
         logy=logy,
         legend=legend,
         errors=errors,
+        ratio=ratio,
     )
     if not fig:
         return False
@@ -339,7 +377,7 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
             ]:
                 diagnostics_plot(
                     pdf,
-                    counts.tolist(),
+                    [counts],  # type: ignore[arg-type]
                     "number_secondary_particles",
                     "",
                     "Events",
