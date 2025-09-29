@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+from functools import partial
+from multiprocessing import Pool
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -17,8 +19,14 @@ import pandas as pd
 import uproot
 
 from siliconai_validator.plotting.diagnostics import process_hits, process_particles
+from siliconai_validator.scheduling.submission import (
+    create_slurm_run_script,
+    create_slurm_submission_script,
+)
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from siliconai_validator.cli.config import Configuration
     from siliconai_validator.cli.logger import Logger
 
@@ -85,12 +93,13 @@ def process_particle_vertices_as_hits(
     return vertex_data.sort_index()
 
 
-def export_hits(  # noqa: PLR0915
+def export_hits_single(  # noqa: PLR0915
+    index: int,
     logger: Logger,
     config: Configuration,
     fixed_length: bool = False,
 ) -> None:
-    """Export hits for ML usage."""
+    """Export single-file hits for ML usage."""
     logger.info("Loading particles data...")
     particles_columns_common = ["event_id", "particle_type", "number_of_hits"]
     particles_columns_vertex = [
@@ -103,7 +112,7 @@ def export_hits(  # noqa: PLR0915
         "pz",
         "number_of_hits",
     ]
-    particles_file_path = config.output_path / "particles_simulation.root"
+    particles_file_path = config.output_path / "particles_simulation" / f"{index}.root"
     particles = uproot.open(f"{particles_file_path}:particles").arrays()
     logger.info("Processing particles data...")
     particles_data_common: pd.DataFrame = process_particles(particles, primary=True)[
@@ -141,8 +150,13 @@ def export_hits(  # noqa: PLR0915
         "lx",
         "ly",
     ]
-    hits_file_path = config.output_path / "hits.root"
+    hits_columns_out = [
+        "geometry_id",
+        "particle_type",
+    ]
+    hits_file_path = config.output_path / "hits" / f"{index}.root"
     hits = uproot.open(f"{hits_file_path}:hits").arrays()
+    hits["barcode"] = hits["barcode"][:, 2]
     logger.info("Processing hits data...")
     hits_data: pd.DataFrame = process_hits(hits, primary=True)[hits_columns]
     hits_data["index"] = hits_data["index"] + 1
@@ -150,10 +164,11 @@ def export_hits(  # noqa: PLR0915
     hits_data = hits_data.sort_index()
     quantized = ["lxq", "lyq", "tpxq", "tpyq", "tpzq"]
     for col in quantized:
-        hits_data[col] = (
-            hits_data[col[:-1]].round(2).map(lambda x: np.trunc(100 * x) / 100)
+        hits_data[col] = hits_data[col[:-1]].map(
+            lambda x: np.trunc(np.floor(x * 100) if x > 0 else np.ceil(x * 100)) / 100,
         )
     hits_columns += quantized
+    hits_columns_out += quantized
 
     logger.info("Merging particles and hits data...")
     cat_data = pd.concat(
@@ -178,11 +193,13 @@ def export_hits(  # noqa: PLR0915
             level=0,
         )
 
+    output_data = output_data[hits_columns_out]
+
     logger.info("Exporting metadata...")
     output_data_float = output_data.select_dtypes(include=["float32", "float64"])
     meta_list = []
     meta_labels = []
-    for c in hits_columns + particles_columns_vertex:
+    for c in hits_columns_out:
         if c not in output_data_float:
             continue
 
@@ -203,15 +220,91 @@ def export_hits(  # noqa: PLR0915
     )
 
     logger.info("Exporting data...")
-    with pd.HDFStore(config.output_path / "hits.h5", mode="w") as store:
-        store["hits"] = output_data
-        store["metadata"] = metadata
+    with pd.HDFStore(config.output_path / "hits" / f"{index}.h5", mode="w") as store:
+        output_data = output_data.reset_index()
+        store.put("hits", output_data, format="table", complib="zlib")
+        store.put("metadata", metadata, format="table", complib="zlib")
 
     # test
     logger.info("Validating data...")
-    with pd.HDFStore(config.output_path / "hits.h5", mode="r") as store:
+    with pd.HDFStore(config.output_path / "hits" / f"{index}.h5", mode="r") as store:
+        test_hits = store["hits"].set_index(["event_id", "index"])
         print(store.info())  # noqa: T201
-        print(store["hits"].loc[[0]])  # noqa: T201
-        print(store["hits"].dtypes)  # noqa: T201
+        print(test_hits.loc[[0]])  # noqa: T201
+        print(test_hits.dtypes)  # noqa: T201
         print(store["metadata"])  # noqa: T201
         print(store["metadata"].dtypes)  # noqa: T201
+
+
+def export_hits(
+    logger: Logger,
+    config: Configuration,
+    fixed_length: bool = False,
+    task_id: int = -1,
+    slurm: bool = False,
+) -> None:
+    """Export hits for ML usage."""
+    nfiles = len(list((config.output_path / "hits").glob("*.root")))
+
+    if slurm:
+        logger.info("Preparing %d jobs for %d files", nfiles, nfiles)
+
+        script = create_slurm_submission_script(
+            f"Export_{config.output_name}",
+            config.output_path / "run",
+        )
+        for index in range(1, nfiles + 1):
+            create_run_script(
+                index,
+                config.location,
+                config.output_path / "run",
+            )
+
+        logger.info("Prepared submission script: %s", script)
+        return
+
+    # run the process pool
+    if task_id > 0:
+        if task_id > nfiles:
+            error = f"Task ID {task_id} is larger than the number of files {nfiles}."
+            raise ValueError(error)
+
+        logger.info("Running single task ID %d", task_id)
+        export_hits_single(
+            task_id,
+            logger=logger,
+            config=config,
+            fixed_length=fixed_length,
+        )
+        return
+
+    logger.info(
+        "Spawning %d processes for %d files",
+        config.global_config.threads,
+        nfiles,
+    )
+    with Pool(config.global_config.threads) as p:
+        p.starmap(
+            partial(
+                export_hits_single,
+                logger=logger,
+                config=config,
+                fixed_length=fixed_length,
+            ),
+            zip(range(1, nfiles + 1), strict=True),
+        )
+
+
+def create_run_script(
+    task_id: int,
+    config_file: Path,
+    run_path: Path,
+) -> Path:
+    """Create a script to run exporting on a file."""
+    script_run_path = run_path / f"proc_{task_id}"
+    if not script_run_path.exists():
+        script_run_path.mkdir(parents=True)
+
+    command = f"siliconai_validator export -c {config_file} -t {task_id}"
+
+    return create_slurm_run_script(script_run_path, command)

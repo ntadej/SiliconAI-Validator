@@ -276,13 +276,14 @@ def process_particles(particles: ak.Array, primary: bool = True) -> pd.DataFrame
 
 def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa: C901
     """Plot particles."""
+    identifier_branch = "particle_hash"
     if step is ProductionStep.Simulation:
-        file_name = "particles_simulation.root"
+        input_path = "particles_simulation"
     else:
-        file_name = "particles.root"
-    out_file_name = "diagnostics_" + file_name.replace(".root", ".pdf")
+        input_path = "particles"
+    out_file_name = f"diagnostics_{input_path}.pdf"
 
-    file_path = config.output_path / file_name
+    file_path = config.output_path / input_path / "1.root"
     particles = uproot.open(f"{file_path}:particles").arrays()
     particles_data: pd.DataFrame = process_particles(particles, primary=True)
     particles_data_secondary: pd.DataFrame = process_particles(particles, primary=False)
@@ -355,7 +356,9 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
             secondary_cut = secondary_useful[secondary_useful["pt"] > cut]
 
             particle_counts = (
-                secondary_useful.groupby(["event_id"])["particle_id"].count().to_numpy()
+                secondary_useful.groupby(["event_id"])[identifier_branch]
+                .count()
+                .to_numpy()
             )
             particle_counts = np.pad(
                 particle_counts,
@@ -363,7 +366,9 @@ def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa
                 "constant",
             )
             particle_counts_cut = (
-                secondary_cut.groupby(["event_id"])["particle_id"].count().to_numpy()
+                secondary_cut.groupby(["event_id"])[identifier_branch]
+                .count()
+                .to_numpy()
             )
             particle_counts_cut = np.pad(
                 particle_counts_cut,
@@ -420,9 +425,9 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
     data_frame: pd.DataFrame
     data_frame = ak.to_dataframe(tmp)
     if primary:
-        data_frame = data_frame[data_frame["particle_id"] == common_initial_barcode]
+        data_frame = data_frame[data_frame["barcode"] == common_initial_barcode]
     else:
-        data_frame = data_frame[data_frame["particle_id"] != common_initial_barcode]
+        data_frame = data_frame[data_frame["barcode"] != common_initial_barcode]
 
     data_frame["deltae"] = np.abs(data_frame["deltae"])
 
@@ -469,11 +474,11 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
 
 def plot_hits(config: Configuration) -> None:
     """Plot hits."""
-    file_name = "hits.root"
-    out_file_name = "diagnostics_" + file_name.replace(".root", ".pdf")
+    out_file_name = "diagnostics_hits.pdf"
 
-    file_path = config.output_path / file_name
+    file_path = config.output_path / "hits" / "1.root"
     hits = uproot.open(f"{file_path}:hits").arrays()
+    hits["barcode"] = hits["barcode"][:, 2]
     hits_data_primary: pd.DataFrame = process_hits(hits, primary=True)
     hits_data_secondary: pd.DataFrame = process_hits(hits, primary=False)
 
@@ -578,7 +583,7 @@ def plot_hits(config: Configuration) -> None:
                     "nhits",
                     "Primary hit",
                     "Events",
-                    labels_extra_primary,
+                    labels,
                 )
 
         for column in columns:

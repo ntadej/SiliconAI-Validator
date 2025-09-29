@@ -27,6 +27,10 @@ from acts.examples.simulation import (
 
 from siliconai_validator.common.enums import SimulationType
 from siliconai_validator.common.utils import rm_tree
+from siliconai_validator.scheduling.submission import (
+    create_slurm_run_script,
+    create_slurm_submission_script,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -35,6 +39,9 @@ if TYPE_CHECKING:
     from siliconai_validator.cli.logger import Logger
 
 u = acts.UnitConstants
+
+MIN_EVENTS_PER_PROCESS = 100_000
+MAX_EVENTS_PER_MERGE = 1_000_000
 
 
 def schedule_simulation(
@@ -98,7 +105,7 @@ def schedule_simulation(
 def run_simulation(
     seed: int,
     config: SimulationConfiguration,
-    input_path: Path,
+    input_file: Path,
     output_path: Path,
     events: int,
     skip: int = 0,
@@ -129,7 +136,7 @@ def run_simulation(
         acts.examples.RootParticleReader(
             level=acts.logging.WARNING,
             outputParticles="particles_generated",
-            filePath=input_path / "particles.root",
+            filePath=input_file,
         ),
     )
 
@@ -165,17 +172,22 @@ def run_simulation_range(
     end_event: int,
     seed: int,
     config: SimulationConfiguration,
-    output_path: Path,
+    input_path_base: Path,
+    run_path_base: Path,
 ) -> None:
     """Run event simulation on an event range."""
+    input_number = begin_event // MAX_EVENTS_PER_MERGE
     events = end_event - begin_event
-    skip = begin_event
+    skip = begin_event - input_number * MAX_EVENTS_PER_MERGE
+    run_path = run_path_base / f"proc_{task_id}"
+    if not run_path.exists():
+        run_path.mkdir(parents=True)
 
     run_simulation(
-        seed,
+        seed + input_number * MAX_EVENTS_PER_MERGE,
         config,
-        output_path,
-        output_path / f"proc_{task_id}",
+        input_path_base / f"{input_number + 1}.root",
+        run_path,
         events,
         skip,
     )
@@ -187,43 +199,180 @@ def run_simulation_multiprocess(
     config: SimulationConfiguration,
     events: int,
     processes: int,
+    config_file: Path,
+    output_name: str,
     output_path: Path,
+    slurm: bool = False,
+    postprocess: bool = False,
+    run_task: tuple[int, int, int] | None = None,
 ) -> None:
     """Run event simulation in parallel."""
     logger.info("Running event simulation")
 
-    if processes <= 1:
-        run_simulation(seed, config, output_path, output_path, events)
+    if postprocess and not slurm:
+        logger.error("Postprocessing can only be run with SLURM.")
         return
 
-    chunksize = events // (processes - 1)
-    ids = range(processes)
+    if run_task is not None and run_task[0] >= 0:
+        task_id, events, skip = run_task
+        logger.info(
+            "Running task #%d with %d events, skipping %d",
+            task_id,
+            events,
+            skip,
+        )
+        run_simulation_range(
+            task_id,
+            skip,
+            skip + events,
+            seed,
+            config,
+            output_path / "particles",
+            output_path / "run",
+        )
+        return
+
+    njobs = events // MIN_EVENTS_PER_PROCESS
+    njobs = njobs if slurm else min(processes, njobs)
+
+    if not slurm and (njobs <= 1 or events < MIN_EVENTS_PER_PROCESS):
+        error = "Not enough events to run in parallel."
+        raise ValueError(error)
+
+    chunksize = events // njobs
+
+    ids = range(njobs)
     begins = range(0, events, chunksize)
     ends = [min(b + chunksize, events) for b in begins]
 
-    # run the process pool
+    if slurm:
+        if not postprocess:
+            logger.info(
+                "Preparing %d jobs for %d events, %d each",
+                njobs,
+                events,
+                chunksize,
+            )
+
+            script = create_slurm_submission_script(
+                f"Simulation_{output_name}",
+                output_path / "run",
+            )
+            for task_id, begin, end in zip(ids, begins, ends, strict=True):
+                create_run_script(
+                    task_id,
+                    begin,
+                    end,
+                    config_file,
+                    output_path / "run",
+                )
+
+            logger.info("Prepared submission script: %s", script)
+            return
+    else:
+        logger.info(
+            "Spawning %d processes for %d events, %d each",
+            njobs,
+            events,
+            chunksize,
+        )
+
+        # run the process pool
+        with Pool(processes) as p:
+            p.starmap(
+                partial(
+                    run_simulation_range,
+                    seed=seed,
+                    config=config,
+                    input_path_base=output_path / "particles",
+                    run_path_base=output_path / "run",
+                ),
+                zip(ids, begins, ends, strict=False),
+            )
+
+    # validate outputs
+    if slurm and len(list(output_path.rglob("run/proc_*/SUCCESS"))) != njobs:
+        logger.error("Some jobs did not complete successfully.")
+        return
+
+    # merge outputs
+    njobs_merge = events // MAX_EVENTS_PER_MERGE
+    files_per_merge = njobs // njobs_merge
+    logger.info(
+        "Merging outputs in %d files, %d inputs each",
+        njobs_merge,
+        files_per_merge,
+    )
+
+    if not (output_path / "hits").exists():
+        (output_path / "hits").mkdir(parents=True)
+    if not (output_path / "particles_simulation").exists():
+        (output_path / "particles_simulation").mkdir(parents=True)
+
+    # run the process pool for merging
     with Pool(processes) as p:
         p.starmap(
             partial(
-                run_simulation_range,
-                seed=seed,
-                config=config,
+                merge_results,
+                njobs=njobs,
+                njobs_merge=njobs_merge,
                 output_path=output_path,
             ),
-            zip(ids, begins, ends, strict=False),
+            zip(range(1, njobs_merge + 1), strict=True),
         )
 
-    # merge outputs
-    hits_files = [str(file) for file in output_path.rglob("proc_*/hits.root")]
+    rm_tree(output_path / "run")
+
+
+def create_run_script(
+    task_id: int,
+    begin_event: int,
+    end_event: int,
+    config_file: Path,
+    run_path: Path,
+) -> Path:
+    """Create a script to run event simulation on an event range."""
+    events = end_event - begin_event
+    skip = begin_event
+    script_run_path = run_path / f"proc_{task_id}"
+    if not script_run_path.exists():
+        script_run_path.mkdir(parents=True)
+
+    command = (
+        f"siliconai_validator simulate -c {config_file}"
+        f" -t {task_id} -e {events} -s {skip}"
+    )
+
+    return create_slurm_run_script(script_run_path, command)
+
+
+def merge_results(index: int, njobs: int, njobs_merge: int, output_path: Path) -> None:
+    """Merge results from multiple event simulation runs."""
+    files_per_merge = njobs // njobs_merge
+    hits_files = [output_path / "run" / f"proc_{i}/hits.root" for i in range(njobs)]
     particles_files = [
-        str(file) for file in output_path.rglob("proc_*/particles_simulation.root")
+        output_path / "run" / f"proc_{i}/particles_simulation.root"
+        for i in range(njobs)
     ]
-    hits_file_out = str(output_path / "hits.root")
-    particles_file_out = str(output_path / "particles_simulation.root")
 
-    subprocess.run(["hadd", "-f", hits_file_out, *hits_files], check=True)  # noqa: S603 S607
-    subprocess.run(["hadd", "-f", particles_file_out, *particles_files], check=True)  # noqa: S603 S607
+    hits_file_out = str(output_path / "hits" / f"{index}.root")
+    particles_file_out = str(output_path / "particles_simulation" / f"{index}.root")
 
-    proc_folders = output_path.glob("proc_*")
-    for folder in proc_folders:
-        rm_tree(folder)
+    subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "hadd",
+            "-f",
+            hits_file_out,
+            *hits_files[files_per_merge * (index - 1) : files_per_merge * index],
+        ],
+        check=True,
+    )
+    subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "hadd",
+            "-f",
+            particles_file_out,
+            *particles_files[files_per_merge * (index - 1) : files_per_merge * index],
+        ],
+        check=True,
+    )

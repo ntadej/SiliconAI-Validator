@@ -113,6 +113,44 @@ def generate(
             help="Prepare diagnostics plots.",
         ),
     ] = False,
+    events: Annotated[
+        int,
+        typer.Option(
+            "-e",
+            "--events",
+            help="Number of events to run",
+        ),
+    ] = 0,
+    skip: Annotated[
+        int,
+        typer.Option(
+            "-s",
+            "--skip",
+            help="Number of events to skip",
+        ),
+    ] = 0,
+    task_id: Annotated[
+        int,
+        typer.Option(
+            "-t",
+            "--task-id",
+            help="Specific task ID to run.",
+        ),
+    ] = -1,
+    slurm: Annotated[
+        bool,
+        typer.Option(
+            "--slurm",
+            help="Run simulation through SLURM scheduler.",
+        ),
+    ] = False,
+    postprocess: Annotated[
+        bool,
+        typer.Option(
+            "--postprocess",
+            help="Run postprocessing after SLURM jobs are done.",
+        ),
+    ] = False,
 ) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
@@ -121,14 +159,20 @@ def generate(
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
 
-    from siliconai_validator.scheduling.generation import run_generation
+    from siliconai_validator.scheduling.generation import run_generation_multiprocess
 
-    run_generation(
+    run_generation_multiprocess(
         logger,
         config.seed,
         config.process,
-        config.output_path,
         config.events,
+        global_config.threads,
+        config_file,
+        config.output_name,
+        config.output_path,
+        run_task=(task_id, events, skip),
+        slurm=slurm,
+        postprocess=postprocess,
     )
 
     if diagnostics:
@@ -158,6 +202,44 @@ def simulate(
             help="Prepare diagnostics plots.",
         ),
     ] = False,
+    events: Annotated[
+        int,
+        typer.Option(
+            "-e",
+            "--events",
+            help="Number of events to run",
+        ),
+    ] = 0,
+    skip: Annotated[
+        int,
+        typer.Option(
+            "-s",
+            "--skip",
+            help="Number of events to skip",
+        ),
+    ] = 0,
+    task_id: Annotated[
+        int,
+        typer.Option(
+            "-t",
+            "--task-id",
+            help="Specific task ID to run.",
+        ),
+    ] = -1,
+    slurm: Annotated[
+        bool,
+        typer.Option(
+            "--slurm",
+            help="Run simulation through SLURM scheduler.",
+        ),
+    ] = False,
+    postprocess: Annotated[
+        bool,
+        typer.Option(
+            "--postprocess",
+            help="Run postprocessing after SLURM jobs are done.",
+        ),
+    ] = False,
 ) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
@@ -174,7 +256,12 @@ def simulate(
         config.simulation,
         config.events,
         global_config.threads,
+        config_file,
+        config.output_name,
         config.output_path,
+        run_task=(task_id, events, skip),
+        slurm=slurm,
+        postprocess=postprocess,
     )
 
     if diagnostics:
@@ -279,6 +366,21 @@ def export(
             help="Only select fixed-lenght sequences (the ones with highest rate).",
         ),
     ] = False,
+    task_id: Annotated[
+        int,
+        typer.Option(
+            "-t",
+            "--task-id",
+            help="Specific task ID to run.",
+        ),
+    ] = -1,
+    slurm: Annotated[
+        bool,
+        typer.Option(
+            "--slurm",
+            help="Run simulation through SLURM scheduler.",
+        ),
+    ] = False,
 ) -> None:
     """Export events."""
     global_config = GlobalConfiguration.load(state)
@@ -291,7 +393,7 @@ def export(
 
     from siliconai_validator.data.export import export_hits
 
-    export_hits(logger, config, fixed_length=fixed_length)
+    export_hits(logger, config, fixed_length=fixed_length, slurm=slurm, task_id=task_id)
 
 
 @application.command("import")

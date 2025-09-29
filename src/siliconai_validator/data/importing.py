@@ -105,7 +105,7 @@ def write_hits_tree(
             {
                 "event_id": "uint32",
                 "geometry_id": "uint64",
-                "particle_id": "uint64",
+                "barcode": "uint64",
                 "tx": "float32",
                 "ty": "float32",
                 "tz": "float32",
@@ -128,7 +128,7 @@ def write_hits_tree(
             {
                 "event_id": event_id,
                 "geometry_id": data["geometry_id"].astype("uint64"),
-                "particle_id": [common_initial_barcode] * len(event_id),
+                "barcode": [common_initial_barcode] * len(event_id),
                 "tx": data["tx"],
                 "ty": data["ty"],
                 "tz": data["tz"],
