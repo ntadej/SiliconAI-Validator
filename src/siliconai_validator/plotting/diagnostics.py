@@ -193,7 +193,7 @@ def diagnostics_plot(
     else:
         values_out = [values / common_scales.get(column, 1)]
 
-    fig, ax = plot_hist(
+    fig, _ = plot_hist(
         values_out,
         column,
         label_x=label_x,

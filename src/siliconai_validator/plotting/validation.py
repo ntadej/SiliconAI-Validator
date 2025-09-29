@@ -271,7 +271,7 @@ def validate_reconstruction_performance(config: Configuration) -> None:
                     "primary particles only",
                 ]
 
-                fig, ax = plot_errorbar(
+                fig, _ = plot_errorbar(
                     bin_centers,
                     bin_errors,
                     [reference_efficiency, generated_efficiency],
