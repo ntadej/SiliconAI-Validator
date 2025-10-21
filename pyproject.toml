@@ -30,7 +30,7 @@ dependencies = [
     "scipy == 1.16.*",
     "tables == 3.10.*",
     "tomli-w",
-    "typer-slim[standard] == 0.16.*",
+    "typer-slim[standard] ==0.20.*",
     "uproot == 5.6.*",
 ]
 
