@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/fsfe/reuse-tool
-    rev: v5.0.2
+    rev: v6.2.0
     hooks:
       - id: reuse
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -19,7 +19,7 @@ repos:
           - typer
           - tomli_w
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.2
+    rev: v0.14.2
     hooks:
       - id: ruff-check
       - id: ruff-format
