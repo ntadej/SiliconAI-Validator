@@ -155,6 +155,7 @@ def run_reconstruction(
             level=acts.logging.WARNING,
             outputSimHits="simhits",
             filePath=input_file,
+            ignoreBarcode=suffix != "original",
         ),
     )
 
