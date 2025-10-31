@@ -4,7 +4,6 @@ version = 1
 path = [
     ".gitignore",
     ".github/**/*",
-    ".gitlab-ci.yml",
     ".gitmodules",
     ".pre-commit-config.yaml",
     ".python-version",
