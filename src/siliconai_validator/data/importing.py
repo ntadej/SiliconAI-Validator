@@ -95,7 +95,11 @@ def write_hits_tree(
     suffix: str,
 ) -> None:
     """Write hits tree."""
-    output_file = config.output_path / f"hits_{suffix}.root"
+    output_folder = config.output_path / "imported"
+    if not output_folder.exists():
+        output_folder.mkdir(parents=True)
+
+    output_file = output_folder / f"hits_{suffix}.root"
 
     logger.info("Writing %s hits to %s", suffix, output_file)
 

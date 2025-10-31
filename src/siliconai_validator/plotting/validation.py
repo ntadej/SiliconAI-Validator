@@ -194,17 +194,17 @@ def validate(config: Configuration, file: Path, event: int = -1) -> None:
 def validate_reconstruction_performance(config: Configuration) -> None:
     """Validate reconstruction results."""
     reference_file_seeding = (
-        config.output_path / "reference" / "performance_seeding.root"
+        config.output_path / "reco_reference" / "performance_seeding.root"
     )
     generated_file_seeding = (
-        config.output_path / "generated" / "performance_seeding.root"
+        config.output_path / "reco_generated" / "performance_seeding.root"
     )
 
     reference_file_ckf = (
-        config.output_path / "reference" / "performance_fitting_ckf.root"
+        config.output_path / "reco_reference" / "performance_fitting_ckf.root"
     )
     generated_file_ckf = (
-        config.output_path / "generated" / "performance_fitting_ckf.root"
+        config.output_path / "reco_generated" / "performance_fitting_ckf.root"
     )
 
     import skhep_testdata
@@ -289,8 +289,8 @@ def validate_reconstruction_performance(config: Configuration) -> None:
 
 def validate_reconstruction_tracks(config: Configuration) -> None:
     """Validate reconstruction results."""
-    reference_file = config.output_path / "reference" / "tracksummary_ckf.root"
-    generated_file = config.output_path / "generated" / "tracksummary_ckf.root"
+    reference_file = config.output_path / "reco_reference" / "tracksummary_ckf.root"
+    generated_file = config.output_path / "reco_generated" / "tracksummary_ckf.root"
 
     reference_data = uproot.open(f"{reference_file}:tracksummary").arrays()
     generated_data = uproot.open(f"{generated_file}:tracksummary").arrays()

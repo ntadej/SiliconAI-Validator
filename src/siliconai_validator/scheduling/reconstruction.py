@@ -122,8 +122,12 @@ def run_reconstruction(
 
     rnd = acts.examples.RandomNumbers(seed=seed)
 
-    input_file = "hits.root" if suffix == "original" else f"hits_{suffix}.root"
-    output_path_reco = output_path / suffix
+    input_file = (
+        output_path / "hits" / "1.root"
+        if suffix == "original"
+        else output_path / "imported" / f"hits_{suffix}.root"
+    )
+    output_path_reco = output_path / f"reco_{suffix}"
 
     sequencer = acts.examples.Sequencer(
         events=events,
@@ -150,7 +154,7 @@ def run_reconstruction(
         acts.examples.RootSimHitReader(
             level=acts.logging.WARNING,
             outputSimHits="simhits",
-            filePath=output_path / input_file,
+            filePath=input_file,
         ),
     )
 
@@ -158,7 +162,7 @@ def run_reconstruction(
         acts.examples.RootParticleReader(
             level=acts.logging.WARNING,
             outputParticles="particles",
-            filePath=output_path / "particles_simulation.root",
+            filePath=output_path / "particles_simulation" / "1.root",
         ),
     )
     sequencer.addWhiteboardAlias("particles_selected", "particles")
