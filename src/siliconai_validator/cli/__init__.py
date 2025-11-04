@@ -26,7 +26,6 @@ from siliconai_validator.cli.config import (
 )
 from siliconai_validator.cli.logger import setup_logger
 from siliconai_validator.common.enums import ProductionStep
-from siliconai_validator.plotting.common import setup_style
 
 application = typer.Typer()
 state = TyperState()
@@ -176,10 +175,10 @@ def generate(
     )
 
     if diagnostics:
-        setup_style()
-
+        from siliconai_validator.plotting.common import setup_style
         from siliconai_validator.plotting.diagnostics import plot_particles
 
+        setup_style()
         plot_particles(config, ProductionStep.Generation)
 
 
@@ -265,10 +264,10 @@ def simulate(
     )
 
     if diagnostics:
-        setup_style()
-
+        from siliconai_validator.plotting.common import setup_style
         from siliconai_validator.plotting.diagnostics import plot_hits, plot_particles
 
+        setup_style()
         plot_particles(config, ProductionStep.Simulation)
         plot_hits(config)
 
@@ -452,10 +451,10 @@ def diagnostics(
 
     logger.info("Creating diagnostics plots")
 
-    setup_style()
-
+    from siliconai_validator.plotting.common import setup_style
     from siliconai_validator.plotting.diagnostics import plot_hits, plot_particles
 
+    setup_style()
     plot_particles(config, ProductionStep.Generation)
     plot_particles(config, ProductionStep.Simulation)
     plot_hits(config)
@@ -499,10 +498,10 @@ def validate(
 
     logger.info("Validating results")
 
-    setup_style()
-
+    from siliconai_validator.plotting.common import setup_style
     from siliconai_validator.plotting.validation import validate
 
+    setup_style()
     validate(config, file, event)
 
 
@@ -527,12 +526,12 @@ def validate_reco(
 
     logger.info("Validating reconstruction results")
 
-    setup_style()
-
+    from siliconai_validator.plotting.common import setup_style
     from siliconai_validator.plotting.validation import (
         validate_reconstruction_performance,
         validate_reconstruction_tracks,
     )
 
+    setup_style()
     validate_reconstruction_performance(config)
     validate_reconstruction_tracks(config)
