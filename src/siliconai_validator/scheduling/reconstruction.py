@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from siliconai_validator.cli.logger import Logger
+    from siliconai_validator.common.enums import SimulationType
 
 
 u = acts.UnitConstants
@@ -109,6 +110,7 @@ def schedule_reconstruction(
 
 def run_reconstruction(
     logger: Logger,
+    simulation_type: SimulationType,
     seed: int,
     events: int,
     threads: int,
@@ -123,11 +125,15 @@ def run_reconstruction(
     rnd = acts.examples.RandomNumbers(seed=seed)
 
     input_file = (
-        output_path / "hits" / "1.root"
+        output_path / f"hits_{simulation_type.value}" / "1.root"
         if suffix == "original"
         else output_path / "imported" / f"hits_{suffix}.root"
     )
-    output_path_reco = output_path / f"reco_{suffix}"
+    output_path_reco = (
+        output_path / f"reco_{simulation_type.value}"
+        if suffix == "original"
+        else output_path / f"reco_{suffix}"
+    )
 
     sequencer = acts.examples.Sequencer(
         events=events,
@@ -163,7 +169,7 @@ def run_reconstruction(
         acts.examples.RootParticleReader(
             level=acts.logging.WARNING,
             outputParticles="particles",
-            filePath=output_path / "particles_simulation" / "1.root",
+            filePath=output_path / f"particles_{simulation_type.value}" / "1.root",
         ),
     )
     sequencer.addWhiteboardAlias("particles_selected", "particles")

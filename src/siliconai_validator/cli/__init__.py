@@ -25,7 +25,7 @@ from siliconai_validator.cli.config import (
     config_missing,
 )
 from siliconai_validator.cli.logger import setup_logger
-from siliconai_validator.common.enums import ProductionStep
+from siliconai_validator.common.enums import ProductionStep, SimulationType
 
 application = typer.Typer()
 state = TyperState()
@@ -225,6 +225,13 @@ def simulate(
             help="Specific task ID to run.",
         ),
     ] = -1,
+    fatras: Annotated[
+        bool,
+        typer.Option(
+            "--fatras",
+            help="Use Fast Simulation (FATRAS) instead of full Geant4 simulation.",
+        ),
+    ] = False,
     slurm: Annotated[
         bool,
         typer.Option(
@@ -243,6 +250,7 @@ def simulate(
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
+    simulation_type = SimulationType.Fatras if fatras else SimulationType.Geant4
     logger = setup_logger(global_config, "simulate")
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
@@ -251,6 +259,7 @@ def simulate(
 
     run_simulation_multiprocess(
         logger,
+        simulation_type,
         config.seed,
         config.simulation,
         config.events,
@@ -268,8 +277,8 @@ def simulate(
         from siliconai_validator.plotting.diagnostics import plot_hits, plot_particles
 
         setup_style()
-        plot_particles(config, ProductionStep.Simulation)
-        plot_hits(config)
+        plot_particles(config, ProductionStep.Simulation, simulation_type)
+        plot_hits(config, simulation_type)
 
 
 @application.command()
@@ -322,10 +331,18 @@ def reconstruct(
             help="Number of events to skip",
         ),
     ] = 0,
+    fatras: Annotated[
+        bool,
+        typer.Option(
+            "--fatras",
+            help="Use Fast Simulation (FATRAS) instead of full Geant4 simulation.",
+        ),
+    ] = False,
 ) -> None:
     """Generate particles."""
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
+    simulation_type = SimulationType.Fatras if fatras else SimulationType.Geant4
     logger = setup_logger(global_config, "reconstruct")
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
@@ -334,6 +351,7 @@ def reconstruct(
 
     run_reconstruction(
         logger,
+        simulation_type,
         config.seed,
         events if events > 0 else config.events,
         global_config.threads,
@@ -373,6 +391,13 @@ def export(
             help="Specific task ID to run.",
         ),
     ] = -1,
+    fatras: Annotated[
+        bool,
+        typer.Option(
+            "--fatras",
+            help="Use Fast Simulation (FATRAS) instead of full Geant4 simulation.",
+        ),
+    ] = False,
     slurm: Annotated[
         bool,
         typer.Option(
@@ -384,6 +409,7 @@ def export(
     """Export events."""
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
+    simulation_type = SimulationType.Fatras if fatras else SimulationType.Geant4
     logger = setup_logger(global_config, "export")
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
@@ -392,7 +418,14 @@ def export(
 
     from siliconai_validator.data.export import export_hits
 
-    export_hits(logger, config, fixed_length=fixed_length, slurm=slurm, task_id=task_id)
+    export_hits(
+        logger,
+        config,
+        simulation_type,
+        fixed_length=fixed_length,
+        slurm=slurm,
+        task_id=task_id,
+    )
 
 
 @application.command("import")
@@ -441,10 +474,18 @@ def diagnostics(
             help="Task configuration file.",
         ),
     ],
+    fatras: Annotated[
+        bool,
+        typer.Option(
+            "--fatras",
+            help="Use Fast Simulation (FATRAS) instead of full Geant4 simulation.",
+        ),
+    ] = False,
 ) -> None:
     """Run diagnostics and make plots."""
     global_config = GlobalConfiguration.load(state)
     config = Configuration(config_file, global_config)
+    simulation_type = SimulationType.Fatras if fatras else SimulationType.Geant4
     logger = setup_logger(global_config, "diagnostics")
 
     environ["NUMEXPR_MAX_THREADS"] = str(config.global_config.threads)
@@ -456,8 +497,8 @@ def diagnostics(
 
     setup_style()
     plot_particles(config, ProductionStep.Generation)
-    plot_particles(config, ProductionStep.Simulation)
-    plot_hits(config)
+    plot_particles(config, ProductionStep.Simulation, simulation_type)
+    plot_hits(config, simulation_type)
 
 
 @application.command()

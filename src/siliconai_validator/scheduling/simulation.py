@@ -103,6 +103,7 @@ def schedule_simulation(
 
 
 def run_simulation(
+    simulation_type: SimulationType,
     seed: int,
     config: SimulationConfiguration,
     input_file: Path,
@@ -143,7 +144,7 @@ def run_simulation(
     schedule_simulation(
         sequencer,
         rnd,
-        config.type,
+        simulation_type,
         odd_detector,
         odd_tracking_geometry,
         odd_field,
@@ -172,6 +173,7 @@ def run_simulation_range(
     end_event: int,
     seed: int,
     config: SimulationConfiguration,
+    simulation_type: SimulationType,
     input_path_base: Path,
     run_path_base: Path,
 ) -> None:
@@ -184,6 +186,7 @@ def run_simulation_range(
         run_path.mkdir(parents=True)
 
     run_simulation(
+        simulation_type,
         seed + input_number * MAX_EVENTS_PER_MERGE,
         config,
         input_path_base / f"{input_number + 1}.root",
@@ -195,6 +198,7 @@ def run_simulation_range(
 
 def run_simulation_multiprocess(
     logger: Logger,
+    simulation_type: SimulationType,
     seed: int,
     config: SimulationConfiguration,
     events: int,
@@ -227,6 +231,7 @@ def run_simulation_multiprocess(
             skip + events,
             seed,
             config,
+            simulation_type,
             output_path / "particles",
             output_path / "run",
         )
@@ -284,6 +289,7 @@ def run_simulation_multiprocess(
                     run_simulation_range,
                     seed=seed,
                     config=config,
+                    simulation_type=simulation_type,
                     input_path_base=output_path / "particles",
                     run_path_base=output_path / "run",
                 ),
@@ -304,16 +310,17 @@ def run_simulation_multiprocess(
         files_per_merge,
     )
 
-    if not (output_path / "hits").exists():
-        (output_path / "hits").mkdir(parents=True)
-    if not (output_path / "particles_simulation").exists():
-        (output_path / "particles_simulation").mkdir(parents=True)
+    if not (output_path / f"hits_{simulation_type.value}").exists():
+        (output_path / f"hits_{simulation_type.value}").mkdir(parents=True)
+    if not (output_path / f"particles_{simulation_type.value}").exists():
+        (output_path / f"particles_{simulation_type.value}").mkdir(parents=True)
 
     # run the process pool for merging
     with Pool(processes) as p:
         p.starmap(
             partial(
                 merge_results,
+                simulation_type=simulation_type,
                 njobs=njobs,
                 njobs_merge=njobs_merge,
                 output_path=output_path,
@@ -346,7 +353,13 @@ def create_run_script(
     return create_slurm_run_script(script_run_path, command)
 
 
-def merge_results(index: int, njobs: int, njobs_merge: int, output_path: Path) -> None:
+def merge_results(
+    index: int,
+    simulation_type: SimulationType,
+    njobs: int,
+    njobs_merge: int,
+    output_path: Path,
+) -> None:
     """Merge results from multiple event simulation runs."""
     files_per_merge = njobs // njobs_merge
     hits_files = [output_path / "run" / f"proc_{i}/hits.root" for i in range(njobs)]
@@ -355,8 +368,12 @@ def merge_results(index: int, njobs: int, njobs_merge: int, output_path: Path) -
         for i in range(njobs)
     ]
 
-    hits_file_out = str(output_path / "hits" / f"{index}.root")
-    particles_file_out = str(output_path / "particles_simulation" / f"{index}.root")
+    hits_file_out = str(
+        output_path / f"hits_{simulation_type.value}" / f"{index}.root",
+    )
+    particles_file_out = str(
+        output_path / f"particles_{simulation_type.value}" / f"{index}.root",
+    )
 
     subprocess.run(  # noqa: S603
         [  # noqa: S607

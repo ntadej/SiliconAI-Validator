@@ -19,7 +19,11 @@ import numpy as np
 import uproot
 from particle.pdgid import literals as particle_literals
 
-from siliconai_validator.common.enums import ProductionStep, SimulationParticleOutcome
+from siliconai_validator.common.enums import (
+    ProductionStep,
+    SimulationParticleOutcome,
+    SimulationType,
+)
 from siliconai_validator.data.utils import common_initial_barcode
 from siliconai_validator.plotting.common import plot_hist, plot_scatter
 from siliconai_validator.plotting.utils import PDFDocument
@@ -274,11 +278,15 @@ def process_particles(particles: ak.Array, primary: bool = True) -> pd.DataFrame
     return data_frame
 
 
-def plot_particles(config: Configuration, step: ProductionStep) -> None:  # noqa: C901
+def plot_particles(  # noqa: C901
+    config: Configuration,
+    step: ProductionStep,
+    simulation_type: SimulationType = SimulationType.Geant4,
+) -> None:
     """Plot particles."""
     identifier_branch = "particle_hash"
     if step is ProductionStep.Simulation:
-        input_path = "particles_simulation"
+        input_path = f"particles_{simulation_type.value}"
     else:
         input_path = "particles"
     out_file_name = f"diagnostics_{input_path}.pdf"
@@ -472,11 +480,11 @@ def process_hits(hits: ak.Array, primary: bool = True) -> pd.DataFrame:
     return data_frame
 
 
-def plot_hits(config: Configuration) -> None:
+def plot_hits(config: Configuration, simulation_type: SimulationType) -> None:
     """Plot hits."""
     out_file_name = "diagnostics_hits.pdf"
 
-    file_path = config.output_path / "hits" / "1.root"
+    file_path = config.output_path / f"hits_{simulation_type.value}" / "1.root"
     hits = uproot.open(f"{file_path}:hits").arrays()
     hits["barcode"] = hits["barcode"][:, 2]
     hits_data_primary: pd.DataFrame = process_hits(hits, primary=True)

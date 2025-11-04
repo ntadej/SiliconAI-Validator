@@ -16,7 +16,7 @@ from typing import Any
 
 import tomli_w
 
-from siliconai_validator.common.enums import EventType, ParticleType, SimulationType
+from siliconai_validator.common.enums import EventType, ParticleType
 
 from .logger import Table, config_table, error_panel, info_panel
 
@@ -278,22 +278,18 @@ class SimulationConfiguration:
     ) -> None:
         """Initialize simulation configuration."""
         match config:
-            case {
-                "type": str(),
-            }:
+            case {}:
                 pass
             case _:
                 error = f"invalid task configuration: {config}"
                 raise ValueError(error)
 
-        self.type: SimulationType = SimulationType(config["type"])
         self.secondaries_min_pt: float = config.get("secondaries_min_pt", 0)
         self.disable_secondaries: bool = config.get("disable_secondaries", False)
 
     def to_object(self) -> dict[str, Any]:
         """Convert configuration to object."""
         return {
-            "type": self.type.value,
             "disable_secondaries": self.disable_secondaries,
             "secondaries_min_pt": self.secondaries_min_pt,
         }
@@ -302,7 +298,6 @@ class SimulationConfiguration:
         """Convert configuration to table."""
         table = config_table()
 
-        table.add_row("type:", self.type.value)
         table.add_row("disable secondaries:", str(self.disable_secondaries))
         table.add_row("secondaries min pt:", str(self.secondaries_min_pt))
 
