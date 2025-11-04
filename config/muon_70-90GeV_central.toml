@@ -9,5 +9,4 @@ pt = [70, 90]
 eta = [0.05, 0.25]
 
 [simulation]
-type = "geant4"
 disable_secondaries = true

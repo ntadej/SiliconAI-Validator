@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from siliconai_validator.cli.config import Configuration
     from siliconai_validator.cli.logger import Logger
+    from siliconai_validator.common.enums import SimulationType
 
 
 geometry_id_start = 1000000
@@ -97,6 +98,7 @@ def export_hits_single(  # noqa: PLR0915
     index: int,
     logger: Logger,
     config: Configuration,
+    simulation_type: SimulationType,
     fixed_length: bool = False,
 ) -> None:
     """Export single-file hits for ML usage."""
@@ -112,7 +114,9 @@ def export_hits_single(  # noqa: PLR0915
         "pz",
         "number_of_hits",
     ]
-    particles_file_path = config.output_path / "particles_simulation" / f"{index}.root"
+    particles_file_path = (
+        config.output_path / f"particles_{simulation_type.value}" / f"{index}.root"
+    )
     particles = uproot.open(f"{particles_file_path}:particles").arrays()
     logger.info("Processing particles data...")
     particles_data_common: pd.DataFrame = process_particles(particles, primary=True)[
@@ -154,7 +158,9 @@ def export_hits_single(  # noqa: PLR0915
         "geometry_id",
         "particle_type",
     ]
-    hits_file_path = config.output_path / "hits" / f"{index}.root"
+    hits_file_path = (
+        config.output_path / f"hits_{simulation_type.value}" / f"{index}.root"
+    )
     hits = uproot.open(f"{hits_file_path}:hits").arrays()
     hits["barcode"] = hits["barcode"][:, 2]
     logger.info("Processing hits data...")
@@ -220,14 +226,20 @@ def export_hits_single(  # noqa: PLR0915
     )
 
     logger.info("Exporting data...")
-    with pd.HDFStore(config.output_path / "hits" / f"{index}.h5", mode="w") as store:
+    with pd.HDFStore(
+        config.output_path / f"hits_{simulation_type.value}" / f"{index}.h5",
+        mode="w",
+    ) as store:
         output_data = output_data.reset_index()
         store.put("hits", output_data, format="table", complib="zlib")
         store.put("metadata", metadata, format="table", complib="zlib")
 
     # test
     logger.info("Validating data...")
-    with pd.HDFStore(config.output_path / "hits" / f"{index}.h5", mode="r") as store:
+    with pd.HDFStore(
+        config.output_path / f"hits_{simulation_type.value}" / f"{index}.h5",
+        mode="r",
+    ) as store:
         test_hits = store["hits"].set_index(["event_id", "index"])
         print(store.info())  # noqa: T201
         print(test_hits.loc[[0]])  # noqa: T201
@@ -239,12 +251,15 @@ def export_hits_single(  # noqa: PLR0915
 def export_hits(
     logger: Logger,
     config: Configuration,
+    simulation_type: SimulationType,
     fixed_length: bool = False,
     task_id: int = -1,
     slurm: bool = False,
 ) -> None:
     """Export hits for ML usage."""
-    nfiles = len(list((config.output_path / "hits").glob("*.root")))
+    nfiles = len(
+        list((config.output_path / f"hits_{simulation_type.value}").glob("*.root")),
+    )
 
     if slurm:
         logger.info("Preparing %d jobs for %d files", nfiles, nfiles)
@@ -274,6 +289,7 @@ def export_hits(
             task_id,
             logger=logger,
             config=config,
+            simulation_type=simulation_type,
             fixed_length=fixed_length,
         )
         return
@@ -289,6 +305,7 @@ def export_hits(
                 export_hits_single,
                 logger=logger,
                 config=config,
+                simulation_type=simulation_type,
                 fixed_length=fixed_length,
             ),
             zip(range(1, nfiles + 1), strict=True),
