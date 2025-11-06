@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from pandas import Series
 
 
-colors = ["red", "blue"]
+colors = ["red", "blue", "green", "chocolate"]
 
 
 def setup_style() -> None:

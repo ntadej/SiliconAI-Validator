@@ -191,8 +191,18 @@ def validate(config: Configuration, file: Path, event: int = -1) -> None:
     validate_hits(config, file.stem, reference, generated, event)
 
 
-def validate_reconstruction_performance(config: Configuration) -> None:
+def validate_reconstruction_performance(  # noqa: C901 PLR0915
+    config: Configuration,
+    extended: bool = False,
+) -> None:
     """Validate reconstruction results."""
+    if extended:
+        original_file_seeding = (
+            config.output_path / "reco_geant4" / "performance_seeding.root"
+        )
+        fatras_file_seeding = (
+            config.output_path / "reco_fatras" / "performance_seeding.root"
+        )
     reference_file_seeding = (
         config.output_path / "reco_reference" / "performance_seeding.root"
     )
@@ -200,11 +210,32 @@ def validate_reconstruction_performance(config: Configuration) -> None:
         config.output_path / "reco_generated" / "performance_seeding.root"
     )
 
+    if extended:
+        original_file_ckf = (
+            config.output_path / "reco_geant4" / "performance_fitting_ckf.root"
+        )
+        fatras_file_ckf = (
+            config.output_path / "reco_fatras" / "performance_fitting_ckf.root"
+        )
     reference_file_ckf = (
         config.output_path / "reco_reference" / "performance_fitting_ckf.root"
     )
     generated_file_ckf = (
         config.output_path / "reco_generated" / "performance_fitting_ckf.root"
+    )
+
+    if extended:
+        original_file_ambi = (
+            config.output_path / "reco_geant4" / "performance_fitting_ambi.root"
+        )
+        fatras_file_ambi = (
+            config.output_path / "reco_fatras" / "performance_fitting_ambi.root"
+        )
+    reference_file_ambi = (
+        config.output_path / "reco_reference" / "performance_fitting_ambi.root"
+    )
+    generated_file_ambi = (
+        config.output_path / "reco_generated" / "performance_fitting_ambi.root"
     )
 
     import skhep_testdata
@@ -217,16 +248,58 @@ def validate_reconstruction_performance(config: Configuration) -> None:
         uproot.open(generated_file_seeding) as file_gen_seeding,
         uproot.open(reference_file_ckf) as file_ref_ckf,
         uproot.open(generated_file_ckf) as file_gen_ckf,
+        uproot.open(reference_file_ambi) as file_ref_ambi,
+        uproot.open(generated_file_ambi) as file_gen_ambi,
         PDFDocument(config.output_path / "validation_reco_performance.pdf") as pdf,
     ):
-        for file_ref, file_gen, file_label in [
-            (file_ref_seeding, file_gen_seeding, "Seeding"),
-            (file_ref_ckf, file_gen_ckf, "CKF"),
+        if extended:
+            file_orig_seeding = uproot.open(original_file_seeding)
+            file_fatras_seeding = uproot.open(fatras_file_seeding)
+            file_orig_ckf = uproot.open(original_file_ckf)
+            file_fatras_ckf = uproot.open(fatras_file_ckf)
+            file_orig_ambi = uproot.open(original_file_ambi)
+            file_fatras_ambi = uproot.open(fatras_file_ambi)
+
+        for file_orig, file_fatras, file_ref, file_gen, file_label in [
+            (
+                file_orig_seeding if extended else None,
+                file_fatras_seeding if extended else None,
+                file_ref_seeding,
+                file_gen_seeding,
+                "Seeding",
+            ),
+            (
+                file_orig_ckf if extended else None,
+                file_fatras_ckf if extended else None,
+                file_ref_ckf,
+                file_gen_ckf,
+                "CKF",
+            ),
+            (
+                file_orig_ambi if extended else None,
+                file_fatras_ambi if extended else None,
+                file_ref_ambi,
+                file_gen_ambi,
+                "Ambiguity resolution",
+            ),
         ]:
             for variable, variable_label in [
                 ("trackeff_vs_pT", "Track momentum [GeV]"),
                 ("trackeff_vs_z0", "Track z_0 [mm]"),
             ]:
+                if extended and file_orig is not None and file_fatras is not None:
+                    original_eff_passed = (
+                        file_orig[variable].member("fPassedHistogram").to_numpy()
+                    )
+                    original_eff_total = (
+                        file_orig[variable].member("fTotalHistogram").to_numpy()
+                    )
+                    fatras_eff_passed = (
+                        file_fatras[variable].member("fPassedHistogram").to_numpy()
+                    )
+                    fatras_eff_total = (
+                        file_fatras[variable].member("fTotalHistogram").to_numpy()
+                    )
                 reference_eff_passed = (
                     file_ref[variable].member("fPassedHistogram").to_numpy()
                 )
@@ -244,6 +317,11 @@ def validate_reconstruction_performance(config: Configuration) -> None:
                 indices_bins = np.append(reference_eff_total[0] > 0, False)
                 indices_bins[np.nonzero(indices_bins)[0][-1] + 1] = True
 
+                if extended:
+                    original_passed = original_eff_passed[0][indices]
+                    original_total = original_eff_total[0][indices]
+                    fatras_passed = fatras_eff_passed[0][indices]
+                    fatras_total = fatras_eff_total[0][indices]
                 reference_passed = reference_eff_passed[0][indices]
                 reference_total = reference_eff_total[0][indices]
                 generated_passed = generated_eff_passed[0][indices]
@@ -253,6 +331,15 @@ def validate_reconstruction_performance(config: Configuration) -> None:
                 bin_centers = bins[1:] - (bins[1] - bins[0]) / 2
                 bin_errors = len(reference_total) * [(bins[1] - bins[0]) / 2]
 
+                if extended:
+                    original_efficiency = original_passed / original_total
+                    original_err = (
+                        np.sqrt(original_passed) / original_total * original_efficiency
+                    )
+                    fatras_efficiency = fatras_passed / fatras_total
+                    fatras_err = (
+                        np.sqrt(fatras_passed) / fatras_total * fatras_efficiency
+                    )
                 reference_efficiency = reference_passed / reference_total
                 reference_err = (
                     np.sqrt(reference_passed) / reference_total * reference_efficiency
@@ -274,9 +361,20 @@ def validate_reconstruction_performance(config: Configuration) -> None:
                 fig, _ = plot_errorbar(
                     bin_centers,
                     bin_errors,
-                    [reference_efficiency, generated_efficiency],
-                    [reference_err, generated_err],
-                    legend=["Geant4", "Neural network"],
+                    [
+                        original_efficiency,
+                        reference_efficiency,
+                        fatras_efficiency,
+                        generated_efficiency,
+                    ]
+                    if extended
+                    else [reference_efficiency, generated_efficiency],
+                    [original_err, reference_err, fatras_err, generated_err]
+                    if extended
+                    else [reference_err, generated_err],
+                    legend=["Geant4", "Geant4 (rounded)", "Fatras", "Neural network"]
+                    if extended
+                    else ["Geant4", "Neural network"],
                     label_x=variable_label,
                     label_y=f"{file_label} efficiency",
                     labels_extra=labels_extra_primary,
@@ -287,11 +385,20 @@ def validate_reconstruction_performance(config: Configuration) -> None:
                     # plt.close(fig)
 
 
-def validate_reconstruction_tracks(config: Configuration) -> None:
+def validate_reconstruction_tracks(
+    config: Configuration,
+    extended: bool = False,
+) -> None:
     """Validate reconstruction results."""
-    reference_file = config.output_path / "reco_reference" / "tracksummary_ckf.root"
-    generated_file = config.output_path / "reco_generated" / "tracksummary_ckf.root"
+    if extended:
+        original_file = config.output_path / "reco_geant4" / "tracksummary_ambi.root"
+        fatras_file = config.output_path / "reco_fatras" / "tracksummary_ambi.root"
+    reference_file = config.output_path / "reco_reference" / "tracksummary_ambi.root"
+    generated_file = config.output_path / "reco_generated" / "tracksummary_ambi.root"
 
+    if extended:
+        original_data = uproot.open(f"{original_file}:tracksummary").arrays()
+        fatras_data = uproot.open(f"{fatras_file}:tracksummary").arrays()
     reference_data = uproot.open(f"{reference_file}:tracksummary").arrays()
     generated_data = uproot.open(f"{generated_file}:tracksummary").arrays()
 
@@ -313,6 +420,9 @@ def validate_reconstruction_tracks(config: Configuration) -> None:
             "res_eQOP_fit",
             "pull_eQOP_fit",
         ]:
+            if extended:
+                original_value = ak.flatten(original_data[variable]).to_numpy()
+                fatras_value = ak.flatten(fatras_data[variable]).to_numpy()
             reference_value = ak.flatten(reference_data[variable]).to_numpy()
             generated_value = ak.flatten(generated_data[variable]).to_numpy()
 
@@ -327,11 +437,15 @@ def validate_reconstruction_tracks(config: Configuration) -> None:
 
             diagnostics_plot(
                 pdf,
-                [reference_value, generated_value],
+                [original_value, reference_value, fatras_value, generated_value]
+                if extended
+                else [reference_value, generated_value],
                 variable,
                 "Track",
                 "Tracks",
                 labels_extra_primary,
-                legend=["Geant4", "Neural network"],
+                legend=["Geant4", "Geant4 (rounded)", "Fatras", "Neural network"]
+                if extended
+                else ["Geant4", "Neural network"],
                 ratio="res_" not in variable and "pull_" not in variable,
             )

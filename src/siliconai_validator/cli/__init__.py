@@ -557,6 +557,14 @@ def validate_reco(
             help="Task configuration file.",
         ),
     ],
+    extended: Annotated[
+        bool,
+        typer.Option(
+            "-x",
+            "--extended",
+            help="Make an extended set of validation plots.",
+        ),
+    ] = False,
 ) -> None:
     """Validate ML results."""
     global_config = GlobalConfiguration.load(state)
@@ -574,5 +582,5 @@ def validate_reco(
     )
 
     setup_style()
-    validate_reconstruction_performance(config)
-    validate_reconstruction_tracks(config)
+    validate_reconstruction_performance(config, extended)
+    validate_reconstruction_tracks(config, extended)
