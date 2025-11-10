@@ -3,6 +3,7 @@ title: SiliconAI Validator
 version: 0.3.0
 license: MPL-2.0
 type: software
+doi: 10.5281/zenodo.17567586
 repository-code: https://github.com/ntadej/SiliconAI-Validator
 abstract: Silicon detector simulation validation suite based on Acts.
 message: If you use this software, please cite it using these metadata.
