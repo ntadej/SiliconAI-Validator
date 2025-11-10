@@ -1,5 +1,12 @@
 # SiliconAI Validator
 
+[![10.5281/zenodo.17567586][zenodo-img]][zenodo]
+[![Latest release][release-img]][release]
+[![License][license-img]][license]
+[![pre-commit][pre-commit-img]][pre-commit]
+[![Continuous Integration][ci-img]][ci]
+[![codecov.io][codecov-img]][codecov]
+
 Silicon detector simulation validation suite based on Acts.
 It is primarily targeting ML based silicon detector simulation.
 
@@ -95,3 +102,16 @@ Europe research and innovation programme under the Marie Skłodowska-Curie
 Postdoctoral Fellowship Programme, SMASH, co-funded under the grant agreement
 No. 101081355. The SMASH project is co-funded by the Republic of Slovenia and
 the European Union from the European Regional Development Fund.
+
+[zenodo]: https://doi.org/10.5281/zenodo.17567586
+[zenodo-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.17567586.svg
+[release]: https://github.com/ntadej/SiliconAI-Validator/releases/latest
+[release-img]: https://img.shields.io/github/release/ntadej/SiliconAI-Validator.svg
+[license]: https://github.com/ntadej/SiliconAI-Validator/blob/main/LICENSE.md
+[license-img]: https://img.shields.io/github/license/ntadej/SiliconAI-Validator.svg
+[pre-commit]: https://results.pre-commit.ci/latest/github/ntadej/SiliconAI-Validator/main
+[pre-commit-img]: https://results.pre-commit.ci/badge/github/ntadej/SiliconAI-Validator/main.svg
+[ci]: https://github.com/ntadej/SiliconAI-Validator/actions
+[ci-img]: https://github.com/ntadej/SiliconAI-Validator/workflows/Continuous%20Integration/badge.svg
+[codecov]: https://codecov.io/github/ntadej/SiliconAI-Validator?branch=main
+[codecov-img]: https://codecov.io/github/ntadej/SiliconAI-Validator/coverage.svg?branch=main
