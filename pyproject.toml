@@ -46,7 +46,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-forked",
-    "ruff == 0.14.3",
+    "ruff == 0.14.4",
 ]
 
 [project.scripts]
