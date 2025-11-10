@@ -196,6 +196,10 @@ def validate_reconstruction_performance(  # noqa: C901 PLR0915
     extended: bool = False,
 ) -> None:
     """Validate reconstruction results."""
+    reference_hits_file = config.output_path / "imported" / "hits_reference.root"
+    reference_hits_data = uproot.open(f"{reference_hits_file}:hits").arrays()
+    size = len(ak.to_dataframe(reference_hits_data).groupby("event_id").size())
+
     if extended:
         original_file_seeding = (
             config.output_path / "reco_geant4" / "performance_seeding.root"
@@ -351,7 +355,7 @@ def validate_reconstruction_performance(  # noqa: C901 PLR0915
 
                 labels_extra = [
                     *config.labels,
-                    f"{config.events} events",
+                    f"{size} events",
                 ]
                 labels_extra_primary = [
                     *labels_extra,
@@ -390,6 +394,10 @@ def validate_reconstruction_tracks(
     extended: bool = False,
 ) -> None:
     """Validate reconstruction results."""
+    reference_hits_file = config.output_path / "imported" / "hits_reference.root"
+    reference_hits_data = uproot.open(f"{reference_hits_file}:hits").arrays()
+    size = len(ak.to_dataframe(reference_hits_data).groupby("event_id").size())
+
     if extended:
         original_file = config.output_path / "reco_geant4" / "tracksummary_ambi.root"
         fatras_file = config.output_path / "reco_fatras" / "tracksummary_ambi.root"
@@ -428,7 +436,7 @@ def validate_reconstruction_tracks(
 
             labels_extra = [
                 *config.labels,
-                f"{config.events} events",
+                f"{size} events",
             ]
             labels_extra_primary = [
                 *labels_extra,

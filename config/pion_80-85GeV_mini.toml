@@ -1,5 +1,6 @@
 labels = [
-    "Single pions, 80 < $p_\\mathrm{T}$ < 85 GeV, 0.05 < $\\eta$ < 0.1, 0 < $\\phi$ < 0.1",
+    "Single pions",
+    "80 < $p_\\mathrm{T}$ < 85 GeV, 0.05 < $\\eta$ < 0.1, 0 < $\\phi$ < 0.1",
 ]
 name = "Pion pt80-85 eta005-010 phi000-010"
 events = 1000000

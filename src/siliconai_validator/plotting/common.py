@@ -185,7 +185,13 @@ def plot_hist(  # noqa: C901 PLR0912
             hep.histplot(ratio_hist, bins_main, ax=ax_ratio, yerr=False, color=color)
 
     if len(data) > 1:
-        ax_main.legend(loc=1, bbox_to_anchor=(0.975, 0.925))
+        ax_main.legend(
+            loc=1,
+            bbox_to_anchor=(
+                0.975,
+                0.925 - (label_offset if len(labels_extra or []) > 3 else 0),  # noqa: PLR2004
+            ),
+        )
 
     return fig, ax_main
 
