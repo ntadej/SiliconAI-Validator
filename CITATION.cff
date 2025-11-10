@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: SiliconAI Validator
+version: 0.3.0
+license: MPL-2.0
+type: software
+repository-code: https://github.com/ntadej/SiliconAI-Validator
+abstract: Silicon detector simulation validation suite based on Acts.
+message: If you use this software, please cite it using these metadata.
+authors:
+  - given-names: Tadej
+    family-names: Novak
+    affiliation: Jožef Stefan Institute
+    orcid: https://orcid.org/0000-0002-3053-0913
+keywords:
+  - simulation
+  - machine learning
+  - transformers
+  - silicon detectors
+  - tracking

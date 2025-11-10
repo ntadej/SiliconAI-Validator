@@ -8,6 +8,7 @@ path = [
     ".pre-commit-config.yaml",
     ".python-version",
     ".vscode/settings.json",
+    "CITATION.cff",
     "config/*.toml",
     "dependencies/hashes",
     "docker/Dockerfile",
