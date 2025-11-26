@@ -17,7 +17,7 @@ import pandas as pd
 import uproot
 
 from siliconai_validator.data.export import geometry_id_end, geometry_id_start
-from siliconai_validator.data.utils import common_initial_barcode
+from siliconai_validator.data.utils import common_initial_barcode_for_import
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -109,7 +109,11 @@ def write_hits_tree(
             {
                 "event_id": "uint32",
                 "geometry_id": "uint64",
-                "barcode": "uint64",
+                "barcode_vertex_primary": "uint32",
+                "barcode_vertex_secondary": "uint32",
+                "barcode_particle": "uint32",
+                "barcode_generation": "uint32",
+                "barcode_sub_particle": "uint32",
                 "tx": "float32",
                 "ty": "float32",
                 "tz": "float32",
@@ -132,7 +136,11 @@ def write_hits_tree(
             {
                 "event_id": event_id,
                 "geometry_id": data["geometry_id"].astype("uint64"),
-                "barcode": [common_initial_barcode] * len(event_id),
+                "barcode_vertex_primary": [common_initial_barcode_for_import[0]] * len(event_id),
+                "barcode_vertex_secondary": [common_initial_barcode_for_import[1]] * len(event_id),
+                "barcode_particle": [common_initial_barcode_for_import[2]] * len(event_id),
+                "barcode_generation": [common_initial_barcode_for_import[3]] * len(event_id),
+                "barcode_sub_particle": [common_initial_barcode_for_import[4]] * len(event_id),
                 "tx": data["tx"],
                 "ty": data["ty"],
                 "tz": data["tz"],

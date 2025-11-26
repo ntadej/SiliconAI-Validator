@@ -10,18 +10,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import acts
-from acts.examples.odd import getOpenDataDetector, getOpenDataDetectorDirectory
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from acts.examples.odd import getOpenDataDetector
 
 u = acts.UnitConstants
 
 # ODD configs
-odd_directory: Path = getOpenDataDetectorDirectory()
+# TODO: getOpenDataDetectorDirectory() needs to be fixed upstream
+odd_directory: Path = Path("dependencies") / "build" / "_deps" / "odd-src"
 odd_material_map: Path = odd_directory / "data/odd-material-maps.root"
 odd_digi_config: Path = odd_directory / "config/odd-digi-smearing-config.json"
 odd_seeding_config: Path = odd_directory / "config/odd-seeding-config.json"
