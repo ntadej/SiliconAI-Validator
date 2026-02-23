@@ -27,7 +27,7 @@ dependencies = [
     "pandas == 2.3.*",
     "particle == 0.26.*",
     "scikit-hep-testdata == 0.5.*",
-    "scipy == 1.16.*",
+    "scipy ==1.17.*",
     "tables == 3.10.*",
     "tomli-w",
     "typer-slim[standard] == 0.20.*",
