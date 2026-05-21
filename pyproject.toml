@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "matplotlib == 3.10.*",
     "mplhep == 0.4.*",
-    "numpy == 2.3.*",
+    "numpy ==2.4.*",
     "pandas == 2.3.*",
     "particle == 0.26.*",
     "scikit-hep-testdata == 0.5.*",
