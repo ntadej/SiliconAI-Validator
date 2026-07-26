@@ -1,6 +1,6 @@
 labels = ["Single muons, 70 < $p_\\mathrm{T}$ < 90 GeV, 0.05 < $\\eta$ < 0.25"]
 name = "Muon pt70-90 eta005-025"
-events = 1000000000
+events = 100000000
 
 [process]
 type = "single_particle"

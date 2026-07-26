@@ -105,6 +105,10 @@ def validate_hits(
     if event >= 0:
         file_suffix = f"{file_suffix}_{event}"
 
+    plots_output_path = config.output_path / "plots"
+    if not plots_output_path.exists():
+        plots_output_path.mkdir(parents=True)
+
     with PDFDocument(config.output_path / f"validation_{file_suffix}.pdf") as pdf:
         if not isinstance(reference_data.index, pd.MultiIndex) or not isinstance(
             generated_data.index,
@@ -151,6 +155,7 @@ def validate_hits(
 
         diagnostics_plot(
             pdf,
+            plots_output_path,
             [reference_hits, generated_hits],
             "nhits",
             "Primary hit",
@@ -162,6 +167,7 @@ def validate_hits(
 
         diagnostics_plot(
             pdf,
+            plots_output_path,
             [diff_hits],
             "nhits_diff",
             "Primary hit",
@@ -173,6 +179,7 @@ def validate_hits(
         for column in columns:
             diagnostics_plot(
                 pdf,
+                plots_output_path,
                 [reference_data[column], generated_data[column]],
                 column,
                 "Primary hit",

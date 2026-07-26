@@ -146,7 +146,8 @@ def plot_hist(  # noqa: C901 PLR0912
         ax_ratio.set_xlabel(label_x or column)  # , labelpad=20)
         ax_ratio.set_ylabel("Ratio", loc="center")
 
-        ax_ratio.set_ylim(0.95, 1.0499)
+        # ax_ratio.set_ylim(0.95, 1.0499)
+        ax_ratio.set_ylim(0.3, 1.4)
 
         plt.subplots_adjust(hspace=0.05)
     else:

@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import acts
@@ -137,7 +138,7 @@ common_binning = {
     "tz": (120, -600, 600),
     "lx": (110, -55, 55),
     "ly": (110, -55, 55),
-    "tpt": (150, 0, 150),
+    "tpt": (90, 0, 90),
     "tpx": (200, -100, 100),
     "tpy": (200, -100, 100),
     "tpz": (200, -100, 100),
@@ -164,6 +165,7 @@ def diagnostics_label(container: str, step: ProductionStep) -> str:
 
 def diagnostics_plot(
     pdf: PDFDocument,
+    output_path: Path,
     values: pd.Series[float] | list[float] | list[pd.Series[float]] | list[list[float]],
     column: str,
     label_x_base: str,
@@ -215,6 +217,11 @@ def diagnostics_plot(
         return False
     fig.set_size_inches(6, 5)
     pdf.save(fig)
+    plt.savefig(
+        output_path / f"validation_{column}.eps",
+        format="eps",
+        bbox_inches="tight",
+    )
     plt.close(fig)
     return True
 
