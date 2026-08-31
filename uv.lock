@@ -162,7 +162,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
+    { name = "pycparser" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -1843,6 +1843,8 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6b/fa/3234f913fe9a6525a7b97c6dad1f51e72b917e6872e051a5e2ffd8b16fbb/ruamel.yaml.clib-0.2.14-cp314-cp314-macosx_15_0_arm64.whl", hash = "sha256:70eda7703b8126f5e52fcf276e6c0f40b0d314674f896fc58c47b0aef2b9ae83", size = 137970, upload-time = "2025-09-22T19:51:09.472Z" },
     { url = "https://files.pythonhosted.org/packages/ef/ec/4edbf17ac2c87fa0845dd366ef8d5852b96eb58fcd65fc1ecf5fe27b4641/ruamel.yaml.clib-0.2.14-cp314-cp314-musllinux_1_2_i686.whl", hash = "sha256:a0cb71ccc6ef9ce36eecb6272c81afdc2f565950cdcec33ae8e6cd8f7fc86f27", size = 739639, upload-time = "2025-09-22T19:51:10.566Z" },
     { url = "https://files.pythonhosted.org/packages/15/18/b0e1fafe59051de9e79cdd431863b03593ecfa8341c110affad7c8121efc/ruamel.yaml.clib-0.2.14-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:e7cb9ad1d525d40f7d87b6df7c0ff916a66bc52cb61b66ac1b2a16d0c1b07640", size = 764456, upload-time = "2025-09-22T19:51:11.736Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/cd/150fdb96b8fab27fe08d8a59fe67554568727981806e6bc2677a16081ec7/ruamel_yaml_clib-0.2.14-cp314-cp314-win32.whl", hash = "sha256:9b4104bf43ca0cd4e6f738cb86326a3b2f6eef00f417bd1e7efb7bdffe74c539", size = 102394, upload-time = "2025-11-14T21:57:36.703Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/e6/a3fa40084558c7e1dc9546385f22a93949c890a8b2e445b2ba43935f51da/ruamel_yaml_clib-0.2.14-cp314-cp314-win_amd64.whl", hash = "sha256:13997d7d354a9890ea1ec5937a219817464e5cc344805b37671562a401ca3008", size = 122673, upload-time = "2025-11-14T21:57:38.177Z" },
 ]
 
 [[package]]
@@ -2008,7 +2010,7 @@ requires-dist = [
     { name = "tables", specifier = "==3.10.*" },
     { name = "tomli-w" },
     { name = "typer-slim", extras = ["standard"], specifier = "==0.20.*" },
-    { name = "uproot", specifier = "==5.6.*" },
+    { name = "uproot", specifier = "==5.7.*" },
 ]
 
 [package.metadata.requires-dev]
@@ -2173,7 +2175,7 @@ wheels = [
 
 [[package]]
 name = "uproot"
-version = "5.6.8"
+version = "5.7.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "awkward" },
@@ -2183,9 +2185,9 @@ dependencies = [
     { name = "packaging" },
     { name = "xxhash" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2a/a9/902b3a66fdf170cf6de0df18c2e05c379d58200632735d7c4105b1c5a48d/uproot-5.6.8.tar.gz", hash = "sha256:e4f314615f6b4ea77265c45d4a3876abf76a5e2595a5feb2e4d305ce6cebb399", size = 992397, upload-time = "2025-10-29T20:07:34.939Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/01/927f0cd22008728785ea070ce20d224ec6ecdc3382afebd11b4ee6414956/uproot-5.7.6.tar.gz", hash = "sha256:a990a6a5f6fa4669daa0af9a7ca9503e574f82e96bf4c72d42de5daa5926fc74", size = 1045970, upload-time = "2026-08-20T00:05:35.531Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/40/420ffa8b3d2b04680d4c13b07546f6cd51f7e6817f026a9550883221b4a1/uproot-5.6.8-py3-none-any.whl", hash = "sha256:dd50d1f602a599bfd9575b69220373a2a3cadb9528a838d2d2be54e048bbafc1", size = 392362, upload-time = "2025-10-29T20:07:32.988Z" },
+    { url = "https://files.pythonhosted.org/packages/92/0c/1b2aaa136ae0c506d9f93472b3d33840850fc83f2a03fe2b0c5f3e0c48ea/uproot-5.7.6-py3-none-any.whl", hash = "sha256:60e0c615c55f6e4e2c573876bc851f0784be05ba49dd20d028b09ebc33bb7674", size = 405799, upload-time = "2026-08-20T00:05:33.609Z" },
 ]
 
 [[package]]
