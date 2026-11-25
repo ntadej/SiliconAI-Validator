@@ -31,7 +31,7 @@ dependencies = [
     "tables == 3.10.*",
     "tomli-w",
     "typer-slim[standard] == 0.20.*",
-    "uproot == 5.6.*",
+    "uproot ==5.7.*",
 ]
 
 [dependency-groups]
